@@ -1,0 +1,61 @@
+{% extends "layout.html" %}
+{% block title %}Sign Up{% endblock %}
+{% block content %}
+
+<div class="min-h-screen flex flex-col">
+  <!-- Header -->
+  <header class="relative overflow-hidden py-16 px-6">
+    <div class="absolute inset-0 bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-indigo-900 opacity-50"></div>
+    <div class="relative max-w-6xl mx-auto text-center">
+      <h1 class="text-4xl md:text-6xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 pb-4 mb-6 animate-fadeInUp">
+        Sign Up
+      </h1>
+      <p class="text-lg md:text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto mb-8 animate-fadeInUp animation-delay-200">
+        Create your account and start using Hate SaaS today.
+      </p>
+    </div>
+  </header>
+
+  <!-- Signup Form -->
+  <section class="py-16 px-6 bg-white dark:bg-gray-900">
+    <div class="max-w-md mx-auto bg-gray-50 dark:bg-gray-800 p-8 rounded-2xl shadow-md border border-gray-200 dark:border-gray-700 animate-fadeInUp">
+      {% if messages %}
+        <div class="mb-4">
+          {% for message in messages %}
+            <p class="text-red-500 text-sm">{{ message }}</p>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      <form method="POST" class="space-y-5">
+        {% csrf_token %}
+        <div>
+          <label class="block text-gray-700 dark:text-gray-300 mb-1">Username</label>
+          <input type="text" name="username" class="w-full p-3 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none" required>
+        </div>
+        <div>
+          <label class="block text-gray-700 dark:text-gray-300 mb-1">Email</label>
+          <input type="email" name="email" class="w-full p-3 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none" required>
+        </div>
+        <div>
+          <label class="block text-gray-700 dark:text-gray-300 mb-1">Password</label>
+          <input type="password" name="password1" class="w-full p-3 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none" required>
+        </div>
+        <div>
+          <label class="block text-gray-700 dark:text-gray-300 mb-1">Confirm Password</label>
+          <input type="password" name="password2" class="w-full p-3 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none" required>
+        </div>
+        <button type="submit" class="w-full py-3 rounded-full bg-green-600 hover:bg-green-700 text-white font-semibold transition-all">
+          Create Account
+        </button>
+      </form>
+
+      <p class="mt-6 text-center text-gray-500 dark:text-gray-400 text-sm">
+        Already have an account? 
+        <a href="{% url 'login' %}" class="text-blue-600 dark:text-blue-400 hover:underline">Login</a>
+      </p>
+    </div>
+  </section>
+</div>
+
+{% endblock %}
