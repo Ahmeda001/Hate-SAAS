@@ -1,0 +1,22 @@
+# Python bytecode
+__pycache__/
+*.py[cod]
+
+
+# Logs
+*.log
+
+# Django media and static files
+media/
+staticfiles/
+
+# Environment
+env/
+
+# IDEs
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db

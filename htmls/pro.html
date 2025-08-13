@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Guardian | Advanced Text Analysis</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        'primary': '#6366f1',
+                        'primary-dark': '#4f46e5',
+                        'secondary': '#8b5cf6',
+                        'accent': '#06b6d4',
+                        'success': '#10b981',
+                        'warning': '#f59e0b',
+                        'danger': '#ef4444',
+                        'dark-bg': '#0f172a',
+                        'dark-card': '#1e293b',
+                        'dark-border': '#334155'
+                    },
+                    animation: {
+                        'fadeInUp': 'fadeInUp 0.6s ease-out',
+                        'pulse-glow': 'pulseGlow 2s ease-in-out infinite',
+                        'typing': 'typing 3.5s steps(40, end), blink-caret .75s step-end infinite',
+                        'slide-up': 'slideUp 0.5s ease-out',
+                        'float': 'float 3s ease-in-out infinite',
+                        'glow': 'glow 2s ease-in-out infinite alternate',
+                        'scan': 'scan 2s linear infinite'
+                    },
+                    keyframes: {
+                        fadeInUp: {
+                            '0%': { opacity: '0', transform: 'translateY(30px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' }
+                        },
+                        pulseGlow: {
+                            '0%, 100%': { boxShadow: '0 0 5px rgba(99, 102, 241, 0.5)' },
+                            '50%': { boxShadow: '0 0 20px rgba(99, 102, 241, 0.8), 0 0 30px rgba(99, 102, 241, 0.4)' }
+                        },
+                        typing: {
+                            '0%': { width: '0' },
+                            '100%': { width: '100%' }
+                        },
+                        slideUp: {
+                            '0%': { opacity: '0', transform: 'translateY(20px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' }
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' }
+                        },
+                        glow: {
+                            '0%': { textShadow: '0 0 5px rgba(99, 102, 241, 0.7)' },
+                            '100%': { textShadow: '0 0 20px rgba(99, 102, 241, 0.9), 0 0 30px rgba(99, 102, 241, 0.6)' }
+                        },
+                        scan: {
+                            '0%': { transform: 'translateY(-100%)' },
+                            '100%': { transform: 'translateY(100vh)' }
+                        }
+                    },
+                    boxShadow: {
+                        'neon': '0 0 15px rgba(99, 102, 241, 0.4)',
+                        'neon-lg': '0 0 30px rgba(99, 102, 241, 0.5)'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #3730a3 100%);
+            background-attachment: fixed;
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .gradient-bg::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 25% 25%, rgba(99, 102, 241, 0.1) 0%, transparent 50%), 
+                        radial-gradient(circle at 75% 75%, rgba(139, 92, 246, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+        }
+        
+        .glass-effect {
+            backdrop-filter: blur(16px);
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        
+        .dark .glass-effect {
+            background: rgba(15, 23, 42, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .typing-demo {
+            border-right: 3px solid rgba(99, 102, 241, 0.75);
+            white-space: nowrap;
+            overflow: hidden;
+            animation: typing 3.5s steps(40, end), blink-caret .75s step-end infinite;
+        }
+        
+        @keyframes blink-caret {
+            from, to { border-color: transparent }
+            50% { border-color: rgba(99, 102, 241, 0.75) }
+        }
+        
+        .result-card {
+            transform: translateY(20px);
+            opacity: 0;
+            transition: all 0.5s ease-out;
+        }
+        
+        .result-card.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        
+        .confidence-bar {
+            width: 0%;
+            transition: width 1.5s ease-out;
+        }
+        
+        .analysis-wave {
+            height: 2px;
+            background: linear-gradient(90deg, 
+                rgba(99, 102, 241, 0) 0%, 
+                rgba(99, 102, 241, 0.8) 50%, 
+                rgba(99, 102, 241, 0) 100%);
+            animation: scan 2s linear infinite;
+            opacity: 0.7;
+        }
+        
+        .neon-border {
+            border-image: linear-gradient(45deg, rgba(99, 102, 241, 0.5), rgba(139, 92, 246, 0.5)) 1;
+            position: relative;
+        }
+        
+        .neon-border::after {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, #6366f1, #8b5cf6);
+            z-index: -1;
+            border-radius: inherit;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .neon-border:hover::after {
+            opacity: 0.3;
+        }
+        
+        .feature-icon {
+            transition: all 0.3s ease;
+        }
+        
+        .feature-icon:hover {
+            transform: translateY(-5px);
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+        
+        .dark-mode .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .dark-mode .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .ai-pulse {
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+        
+        .floating {
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        .model-badge {
+            transition: all 0.3s ease;
+        }
+        
+        .model-badge:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 25px rgba(99, 102, 241, 0.3);
+        }
+        
+        .tab-button {
+            transition: all 0.3s ease;
+        }
+        
+        .tab-button.active {
+            background: rgba(99, 102, 241, 0.2);
+            border-bottom: 2px solid #6366f1;
+        }
+        
+        .theme-toggle {
+            position: relative;
+            width: 60px;
+            height: 30px;
+            border-radius: 15px;
+            background: rgba(255, 255, 255, 0.2);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .theme-toggle::after {
+            content: '';
+            position: absolute;
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background: white;
+            top: 2px;
+            left: 2px;
+            transition: all 0.3s ease;
+        }
+        
+        .theme-toggle.dark::after {
+            left: 32px;
+            background: #1e293b;
+        }
+        
+        .theme-toggle.dark {
+            background: rgba(30, 41, 59, 0.5);
+        }
+    </style>
+</head>
+<body class="min-h-screen text-gray-100 transition-colors duration-300 dark:bg-dark-bg">
+    <!-- Animated Background Elements -->
+    <div class="fixed inset-0 pointer-events-none z-0">
+        <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl animate-pulse"></div>
+        <div class="absolute bottom-1/4 right-1/4 w-96 h-96 bg-secondary/10 rounded-full blur-3xl animate-pulse" style="animation-delay: 2s"></div>
+        <div class="absolute top-1/2 right-1/3 w-64 h-64 bg-accent/10 rounded-full blur-2xl animate-pulse" style="animation-delay: 1s"></div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="bg-white/10 backdrop-blur-lg border-b border-white/20 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-gradient-to-r from-primary to-secondary rounded-xl flex items-center justify-center shadow-lg neon-border">
+                        <i class="fas fa-shield-alt text-white text-lg"></i>
+                    </div>
+                    <div>
+                        <span class="text-white font-bold text-2xl bg-gradient-to-r from-white to-blue-200 bg-clip-text text-transparent">
+                            AI Guardian
+                        </span>
+                        <div class="text-xs text-white/60">Advanced Content Analysis</div>
+                    </div>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <div class="hidden sm:flex items-center space-x-2 text-sm text-white/70">
+                        <i class="fas fa-bolt text-accent"></i>
+                        <span>Real-time Analysis</span>
+                    </div>
+                    
+                    <div class="theme-toggle" id="themeToggle">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-6 py-10 relative z-10">
+        <!-- Header Section -->
+        <div class="text-center mb-12">
+            <h1 class="text-5xl md:text-7xl font-extrabold mb-6 animate-fadeInUp">
+                <span class="bg-gradient-to-r from-white via-blue-100 to-purple-100 bg-clip-text text-transparent ai-pulse">
+                    AI Text Analyzer
+                </span>
+            </h1>
+            <p class="text-xl md:text-2xl text-white/80 max-w-4xl mx-auto animate-fadeInUp" style="animation-delay: 0.2s">
+                <span class="relative">
+                    <span class="relative z-10">Advanced AI-powered</span>
+                    <span class="absolute -inset-1 bg-gradient-to-r from-primary/30 to-secondary/30 blur rounded"></span>
+                </span>
+                <span class="font-semibold text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary"> hate speech detection</span> 
+                with real-time analysis and confidence scoring
+            </p>
+            
+            <div class="flex flex-wrap justify-center gap-4 mt-8 animate-fadeInUp" style="animation-delay: 0.4s">
+                <div class="flex items-center space-x-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full">
+                    <i class="fas fa-microchip text-primary"></i>
+                    <span class="text-sm">Multi-Model AI</span>
+                </div>
+                <div class="flex items-center space-x-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full">
+                    <i class="fas fa-bolt text-accent"></i>
+                    <span class="text-sm">Real-time Processing</span>
+                </div>
+                <div class="flex items-center space-x-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full">
+                    <i class="fas fa-globe text-success"></i>
+                    <span class="text-sm">Multi-language Support</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Interface -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <!-- Input Section -->
+            <div class="glass-effect rounded-3xl p-8 border border-white/20 animate-fadeInUp neon-border" style="animation-delay: 0.3s">
+                <div class="mb-6">
+                    <h2 class="text-2xl font-bold text-white mb-2 flex items-center">
+                        <i class="fas fa-edit text-primary mr-3"></i>
+                        Text Input
+                    </h2>
+                    <p class="text-white/70">Paste or type the content you want to analyze</p>
+                </div>
+
+                <form id="analysisForm" class="space-y-6">
+                    <div class="relative">
+                        <textarea 
+                            id="textInput" 
+                            placeholder="Enter your text here for analysis..."
+                            class="w-full h-72 px-5 py-4 bg-white/10 border border-white/30 rounded-2xl text-white placeholder-white/50 resize-none focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent backdrop-blur-sm transition-all duration-300 custom-scrollbar"
+                            maxlength="5000"
+                        ></textarea>
+                        <div class="absolute bottom-3 right-3 text-white/50 text-sm flex items-center" id="charCount">0 / 5000</div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-white/80 text-sm mb-2 flex items-center">
+                                <i class="fas fa-cogs text-primary mr-2"></i>
+                                Detection Model
+                            </label>
+                            <select id="modelSelect" class="w-full px-4 py-3 bg-white/10 border border-white/30 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-primary appearance-none pr-10">
+                                <option value="advanced">Advanced Multi-Model</option>
+                                <option value="fast">Fast Detection</option>
+                                <option value="precise">Precision Mode</option>
+                                <option value="contextual">Contextual Analysis</option>
+                            </select>
+                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-white/50">
+                                <i class="fas fa-chevron-down"></i>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-white/80 text-sm mb-2 flex items-center">
+                                <i class="fas fa-language text-accent mr-2"></i>
+                                Language
+                            </label>
+                            <select id="languageSelect" class="w-full px-4 py-3 bg-white/10 border border-white/30 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-primary appearance-none pr-10">
+                                <option value="auto">Auto-Detect</option>
+                                <option value="en">English</option>
+                                <option value="es">Spanish</option>
+                                <option value="fr">French</option>
+                                <option value="de">German</option>
+                                <option value="zh">Chinese</option>
+                                <option value="ar">Arabic</option>
+                            </select>
+                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-white/50">
+                                <i class="fas fa-chevron-down"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col sm:flex-row gap-3 pt-2">
+                        <button 
+                            type="submit" 
+                            id="analyzeBtn"
+                            class="flex-1 px-8 py-4 bg-gradient-to-r from-primary to-secondary hover:from-primary-dark text-white font-semibold rounded-2xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 flex items-center justify-center space-x-3 group"
+                        >
+                            <i class="fas fa-magnifying-glass fa-spin group-hover:fa-ban transition-all duration-300"></i>
+                            <span>Analyze Text</span>
+                        </button>
+                        
+                        <button 
+                            type="button"
+                            id="clearBtn"
+                            class="px-6 py-4 bg-white/10 hover:bg-white/20 text-white font-semibold rounded-2xl border border-white/30 transition-all duration-300 flex items-center justify-center space-x-2"
+                        >
+                            <i class="fas fa-trash"></i>
+                            <span>Clear</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Results Section -->
+            <div class="glass-effect rounded-3xl p-8 border border-white/20 animate-fadeInUp" style="animation-delay: 0.5s">
+                <div class="mb-6">
+                    <h2 class="text-2xl font-bold text-white mb-2 flex items-center">
+                        <i class="fas fa-chart-line text-success mr-3"></i>
+                        Analysis Results
+                    </h2>
+                    <p class="text-white/70">Real-time detection with confidence scores</p>
+                </div>
+
+                <div id="resultsContainer" class="space-y-6">
+                    <div id="noResults" class="text-center py-20">
+                        <div class="w-24 h-24 mx-auto mb-6 bg-white/10 rounded-full flex items-center justify-center text-4xl text-white/30">
+                            <i class="fas fa-brain"></i>
+                        </div>
+                        <p class="text-white/50 text-lg typing-demo">Enter text above to begin analysis...</p>
+                        <p class="text-white/40 text-sm mt-2">Our AI will scan for hate speech, offensive content, and contextual nuances</p>
+                    </div>
+
+                    <div id="loadingState" class="hidden">
+                        <div class="text-center py-8">
+                            <div class="relative h-32 flex items-center justify-center mb-6">
+                                <div class="w-20 h-20 border-4 border-white/20 border-t-primary rounded-full animate-spin"></div>
+                                <div class="absolute w-16 h-16 border-2 border-transparent border-t-accent rounded-full animate-spin" style="animation-direction: reverse; animation-duration: 1.5s;"></div>
+                            </div>
+                            <p class="text-white/70 text-lg mb-2">Analyzing content...</p>
+                            <p class="text-white/50 text-sm">Applying multi-model AI algorithms</p>
+                            
+                            <div class="mt-6 w-full bg-white/10 rounded-full h-1.5">
+                                <div class="analysis-wave"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="results" class="hidden space-y-6">
+                        <!-- Results will be populated here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Examples & Features -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
+            <!-- Quick Examples -->
+            <div class="glass-effect rounded-3xl p-8 border border-white/20 animate-fadeInUp" style="animation-delay: 0.7s">
+                <h3 class="text-xl font-bold text-white mb-6 flex items-center">
+                    <i class="fas fa-flask text-yellow-300 mr-3"></i>
+                    Quick Test Examples
+                </h3>
+                <div class="grid grid-cols-1 gap-3">
+                    <button class="example-btn p-4 bg-white/5 hover:bg-white/10 rounded-xl text-left border border-white/10 hover:border-white/30 transition-all group" 
+                            data-text="This is a wonderful day and I hope everyone has a great time!">
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="flex items-center">
+                                <div class="w-3 h-3 bg-success rounded-full mr-2"></div>
+                                <span class="font-semibold text-success">Safe Content</span>
+                            </div>
+                            <i class="fas fa-arrow-right text-white/30 group-hover:text-white/70 text-sm transition-all"></i>
+                        </div>
+                        <div class="text-sm text-white/70 line-clamp-2">Positive, respectful message with inclusive language</div>
+                    </button>
+                    
+                    <button class="example-btn p-4 bg-white/5 hover:bg-white/10 rounded-xl text-left border border-white/10 hover:border-white/30 transition-all group" 
+                            data-text="I disagree with this policy, but I respect different viewpoints.">
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="flex items-center">
+                                <div class="w-3 h-3 bg-blue-400 rounded-full mr-2"></div>
+                                <span class="font-semibold text-blue-400">Neutral Content</span>
+                            </div>
+                            <i class="fas fa-arrow-right text-white/30 group-hover:text-white/70 text-sm transition-all"></i>
+                        </div>
+                        <div class="text-sm text-white/70 line-clamp-2">Constructive disagreement with respectful tone</div>
+                    </button>
+                    
+                    <button class="example-btn p-4 bg-white/5 hover:bg-white/10 rounded-xl text-left border border-white/10 hover:border-white/30 transition-all group" 
+                            data-text="I hate when people cut in line, it's so frustrating!">
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="flex items-center">
+                                <div class="w-3 h-3 bg-warning rounded-full mr-2"></div>
+                                <span class="font-semibold text-warning">Contextual Analysis</span>
+                            </div>
+                            <i class="fas fa-arrow-right text-white/30 group-hover:text-white/70 text-sm transition-all"></i>
+                        </div>
+                        <div class="text-sm text-white/70 line-clamp-2">Contains strong language but context determines classification</div>
+                    </button>
+                    
+                    <button class="example-btn p-4 bg-white/5 hover:bg-white/10 rounded-xl text-left border border-white/10 hover:border-white/30 transition-all group" 
+                            data-text="All people from that country are lazy and stupid. They should stay in their own land.">
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="flex items-center">
+                                <div class="w-3 h-3 bg-danger rounded-full mr-2"></div>
+                                <span class="font-semibold text-danger">Hate Speech</span>
+                            </div>
+                            <i class="fas fa-arrow-right text-white/30 group-hover:text-white/70 text-sm transition-all"></i>
+                        </div>
+                        <div class="text-sm text-white/70 line-clamp-2">Clear example of discriminatory language and stereotypes</div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Features -->
+            <div class="glass-effect rounded-3xl p-8 border border-white/20 animate-fadeInUp" style="animation-delay: 0.9s">
+                <h3 class="text-xl font-bold text-white mb-6 flex items-center">
+                    <i class="fas fa-star text-primary mr-3"></i>
+                    Advanced Features
+                </h3>
+                <div class="space-y-5">
+                    <div class="flex items-start space-x-4 group">
+                        <div class="w-10 h-10 bg-primary/20 rounded-xl flex items-center justify-center flex-shrink-0 mt-1 feature-icon">
+                            <i class="fas fa-network-wired text-primary"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-white mb-1">Multi-Model Analysis</h4>
+                            <p class="text-white/70 text-sm">Combines multiple AI models for comprehensive content analysis with higher accuracy.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-start space-x-4 group">
+                        <div class="w-10 h-10 bg-accent/20 rounded-xl flex items-center justify-center flex-shrink-0 mt-1 feature-icon">
+                            <i class="fas fa-comment-dots text-accent"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-white mb-1">Contextual Understanding</h4>
+                            <p class="text-white/70 text-sm">Goes beyond keyword matching to understand context, sarcasm, and cultural nuances.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-start space-x-4 group">
+                        <div class="w-10 h-10 bg-success/20 rounded-xl flex items-center justify-center flex-shrink-0 mt-1 feature-icon">
+                            <i class="fas fa-shield-alt text-success"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-white mb-1">Real-time Protection</h4>
+                            <p class="text-white/70 text-sm">Instant analysis with sub-second response times to keep your platforms safe.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-start space-x-4 group">
+                        <div class="w-10 h-10 bg-warning/20 rounded-xl flex items-center justify-center flex-shrink-0 mt-1 feature-icon">
+                            <i class="fas fa-globe-americas text-warning"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-white mb-1">Multi-language Support</h4>
+                            <p class="text-white/70 text-sm">Supports 15+ languages with culturally-aware detection patterns.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Model Showcase -->
+        <div class="glass-effect rounded-3xl p-8 border border-white/20 animate-fadeInUp mb-10" style="animation-delay: 1.1s">
+            <h3 class="text-xl font-bold text-white mb-6 text-center">Detection Models</h3>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="model-badge glass-effect rounded-2xl p-5 text-center border border-primary/30 hover:border-primary/50 transition-all">
+                    <div class="w-12 h-12 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-3">
+                        <i class="fas fa-bolt text-primary text-lg"></i>
+                    </div>
+                    <h4 class="font-bold text-white mb-1">Fast Detection</h4>
+                    <p class="text-white/60 text-sm">Optimized for speed with 95% accuracy</p>
+                </div>
+                
+                <div class="model-badge glass-effect rounded-2xl p-5 text-center border border-secondary/30 hover:border-secondary/50 transition-all">
+                    <div class="w-12 h-12 bg-secondary/20 rounded-full flex items-center justify-center mx-auto mb-3">
+                        <i class="fas fa-microscope text-secondary text-lg"></i>
+                    </div>
+                    <h4 class="font-bold text-white mb-1">Precision Mode</h4>
+                    <p class="text-white/60 text-sm">High-accuracy analysis for critical content</p>
+                </div>
+                
+                <div class="model-badge glass-effect rounded-2xl p-5 text-center border border-accent/30 hover:border-accent/50 transition-all">
+                    <div class="w-12 h-12 bg-accent/20 rounded-full flex items-center justify-center mx-auto mb-3">
+                        <i class="fas fa-brain text-accent text-lg"></i>
+                    </div>
+                    <h4 class="font-bold text-white mb-1">Contextual AI</h4>
+                    <p class="text-white/60 text-sm">Understands sarcasm, irony, and cultural context</p>
+                </div>
+                
+                <div class="model-badge glass-effect rounded-2xl p-5 text-center border border-success/30 hover:border-success/50 transition-all">
+                    <div class="w-12 h-12 bg-success/20 rounded-full flex items-center justify-center mx-auto mb-3">
+                        <i class="fas fa-layer-group text-success text-lg"></i>
+                    </div>
+                    <h4 class="font-bold text-white mb-1">Multi-Model</h4>
+                    <p class="text-white/60 text-sm">Ensemble approach combining multiple models</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="text-center text-white/50 text-sm py-6 animate-fadeInUp" style="animation-delay: 1.3s">
+        <p>AI Guardian © 2023 | Advanced Text Analysis System</p>
+        <p class="mt-1 text-xs">Powered by cutting-edge machine learning algorithms</p>
+    </footer>
+
+    <script>
+        // Theme toggle functionality
+        const themeToggle = document.getElementById('themeToggle');
+        const html = document.documentElement;
+        
+        // Check for user preference
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const savedTheme = localStorage.getItem('theme');
+        
+        if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+            html.classList.add('dark');
+            themeToggle.classList.add('dark');
+        }
+        
+        themeToggle.addEventListener('click', () => {
+            if (html.classList.contains('dark')) {
+                html.classList.remove('dark');
+                themeToggle.classList.remove('dark');
+                localStorage.setItem('theme', 'light');
+            } else {
+                html.classList.add('dark');
+                themeToggle.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+            }
+        });
+
+        // Character counter
+        const textInput = document.getElementById('textInput');
+        const charCount = document.getElementById('charCount');
+        
+        textInput.addEventListener('input', function() {
+            const count = this.value.length;
+            charCount.textContent = `${count} / 5000`;
+            
+            if (count > 4500) {
+                charCount.classList.add('text-danger');
+            } else {
+                charCount.classList.remove('text-danger');
+            }
+        });
+
+        // Clear button
+        document.getElementById('clearBtn').addEventListener('click', function() {
+            textInput.value = '';
+            textInput.focus();
+            charCount.textContent = `0 / 5000`;
+            
+            // Reset results
+            document.getElementById('noResults').classList.remove('hidden');
+            document.getElementById('results').classList.add('hidden');
+            document.getElementById('loadingState').classList.add('hidden');
+        });
+
+        // Example buttons
+        document.querySelectorAll('.example-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                textInput.value = this.dataset.text;
+                textInput.focus();
+                charCount.textContent = `${textInput.value.length} / 5000`;
+                
+                // Auto-analyze when example is selected
+                document.getElementById('analyzeBtn').click();
+            });
+        });
+
+        // Form submission
+        document.getElementById('analysisForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const text = textInput.value.trim();
+            if (!text) {
+                // Show animation feedback
+                textInput.classList.add('border', 'border-danger/50', 'animate-pulse');
+                setTimeout(() => {
+                    textInput.classList.remove('animate-pulse');
+                }, 1000);
+                return;
+            }
+
+            // Remove error state if present
+            textInput.classList.remove('border-danger/50');
+            
+            // Show loading state
+            document.getElementById('noResults').classList.add('hidden');
+            document.getElementById('results').classList.add('hidden');
+            document.getElementById('loadingState').classList.remove('hidden');
+
+            // Simulate API call with more realistic timing
+            setTimeout(() => {
+                document.getElementById('loadingState').classList.add('hidden');
+                showResults(text);
+            }, 2500);
+        });
+
+        function showResults(text) {
+            // More sophisticated analysis simulation
+            const lowerText = text.toLowerCase();
+            const wordCount = text.split(/\s+/).filter(word => word.length > 0).length;
+            
+            // Detect various hate speech indicators
+            const hateIndicators = [
+                /hate/gi, /kill/gi, /die/gi, /stupid/gi, /idiot/gi, /moron/gi,
+                /racist/gi, /sexist/gi, /homophobic/gi, /transphobic/gi,
+                /nazi/gi, /fascist/gi, /supremacist/gi,
+                /all\s+\w+\s+are/gi, /they\s+should\s+all/gi
+            ];
+            
+            const insultIndicators = [
+                /fool/gi, /dumb/gi, /retard/gi, /loser/gi, /failure/gi,
+                /worthless/gi, /useless/gi, /pathetic/gi
+            ];
+            
+            // Count matches
+            let hateMatches = 0;
+            let insultMatches = 0;
+            
+            hateIndicators.forEach(pattern => {
+                const matches = text.match(pattern);
+                if (matches) hateMatches += matches.length;
+            });
+            
+            insultIndicators.forEach(pattern => {
+                const matches = text.match(pattern);
+                if (matches) insultMatches += matches.length;
+            });
+            
+            // Calculate risk score with context awareness
+            let riskScore = 0;
+            let issues = [];
+            
+            if (hateMatches > 0) {
+                riskScore += hateMatches * 30;
+                issues.push('hate speech patterns');
+            }
+            
+            if (insultMatches > 0) {
+                riskScore += insultMatches * 15;
+                issues.push('personal insults');
+            }
+            
+            // Check for general negativity
+            const negativeWords = ['hate', 'hated', 'hating', 'terrible', 'awful', 'horrible', 'worst', 'disgusting'];
+            const negativeCount = negativeWords.filter(word => lowerText.includes(word)).length;
+            if (negativeCount > 0) {
+                riskScore += negativeCount * 10;
+                if (negativeCount > 2) issues.push('excessive negativity');
+            }
+            
+            // Check for all-caps which might indicate aggression
+            const allCapsWords = text.split(/\s+/).filter(word => word === word.toUpperCase() && word.length > 3);
+            if (allCapsWords.length > 2) {
+                riskScore += allCapsWords.length * 5;
+                issues.push('aggressive formatting');
+            }
+            
+            // Adjust for context - if positive words are present, reduce risk
+            const positiveWords = ['hope', 'wonderful', 'amazing', 'great', 'good', 'love', 'kind'];
+            const positiveCount = positiveWords.filter(word => lowerText.includes(word)).length;
+            riskScore = Math.max(0, riskScore - (positiveCount * 15));
+            
+            // Cap at 100
+            riskScore = Math.min(100, riskScore);
+            
+            // Determine classification
+            let classification, statusColor, icon, explanation;
+            
+            if (riskScore < 20) {
+                classification = 'Content Safe';
+                statusColor = 'success';
+                icon = 'check-circle';
+                explanation = 'This content appears to be safe and respectful. No hate speech patterns or offensive language detected. The message maintains a positive or neutral tone.';
+            } else if (riskScore < 50) {
+                classification = 'Potential Issue';
+                statusColor = 'warning';
+                icon = 'exclamation-triangle';
+                explanation = 'This content contains some language that might be interpreted as offensive or inappropriate. While not clearly hate speech, it includes concerning elements that warrant attention.';
+            } else if (riskScore < 80) {
+                classification = 'High Risk';
+                statusColor = 'danger';
+                icon = 'exclamation-triangle';
+                explanation = 'This content contains strong language and patterns commonly associated with hate speech. Manual review is strongly recommended before allowing this content.';
+            } else {
+                classification = 'Explicit Hate Speech';
+                statusColor = 'danger';
+                icon = 'skull-crossbones';
+                explanation = 'This content contains clear hate speech elements including discriminatory language, slurs, or calls for harm. This content should be rejected immediately.';
+            }
+            
+            // Get model name
+            const modelSelect = document.getElementById('modelSelect');
+            const modelName = modelSelect.options[modelSelect.selectedIndex].text;
+            
+            // Get language
+            const languageSelect = document.getElementById('languageSelect');
+            const languageName = languageSelect.options[languageSelect.selectedIndex].text;
+            
+            // Generate detailed results
+            const resultsHtml = `
+                <div class="result-card show">
+                    <div class="flex items-center justify-between mb-5">
+                        <div class="flex items-center space-x-4">
+                            <div class="w-4 h-4 bg-${statusColor} rounded-full animate-pulse"></div>
+                            <span class="text-xl font-bold text-${statusColor} capitalize">
+                                ${classification}
+                            </span>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-white/80 font-bold text-2xl">${riskScore.toFixed(0)}</div>
+                            <div class="text-white/60 text-xs">RISK SCORE</div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <div class="flex justify-between text-sm text-white/70 mb-2">
+                            <span>Confidence Level</span>
+                            <span>${Math.max(75, 100 - Math.abs(riskScore - 50))}%</span>
+                        </div>
+                        <div class="w-full bg-white/20 rounded-full h-3">
+                            <div class="confidence-bar h-3 bg-${statusColor} rounded-full" style="width: ${Math.max(75, 100 - Math.abs(riskScore - 50))}%"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
+                        <div class="space-y-3 p-4 bg-white/5 rounded-xl">
+                            <h4 class="font-semibold text-white border-b border-white/20 pb-2">Analysis Details</h4>
+                            <div class="space-y-2 text-sm">
+                                <div class="flex justify-between">
+                                    <span class="text-white/70">Word Count:</span>
+                                    <span class="text-white font-mono">${wordCount}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-white/70">Model Used:</span>
+                                    <span class="text-white">${modelName}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-white/70">Language:</span>
+                                    <span class="text-white">${languageName}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-white/70">Processing:</span>
+                                    <span class="text-white">1.8s</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="space-y-3 p-4 bg-white/5 rounded-xl">
+                            <h4 class="font-semibold text-white border-b border-white/20 pb-2">Detected Issues</h4>
+                            <div class="space-y-2 text-sm">
+                                ${issues.length > 0 ? 
+                                    issues.map(issue => 
+                                        `<div class="flex items-center text-${statusColor}">
+                                            <i class="fas fa-exclamation-triangle mr-2 text-xs"></i>
+                                            ${issue}
+                                        </div>`
+                                    ).join('') : 
+                                    `<div class="text-white/70">No significant issues detected</div>`
+                                }
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="p-5 bg-gradient-to-r from-${statusColor}/20 to-transparent rounded-xl border border-${statusColor}/30">
+                        <div class="flex items-start">
+                            <i class="fas fa-${icon} text-${statusColor} mt-1 mr-3 text-lg"></i>
+                            <div class="text-white/90 text-sm">
+                                <strong>Analysis Summary:</strong><br>
+                                ${explanation}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-6 p-4 bg-white/5 rounded-xl border border-white/10">
+                        <div class="flex items-center text-white/80 text-sm mb-2">
+                            <i class="fas fa-lightbulb mr-2 text-warning"></i>
+                            <strong>Suggested Action</strong>
+                        </div>
+                        <div class="text-sm text-white/70">
+                            ${riskScore < 20 ? 
+                                'Content can be approved without moderation.' : 
+                                riskScore < 50 ? 
+                                'Recommended for manual review before approval.' : 
+                                'Content should be rejected or heavily moderated.'
+                            }
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('results').innerHTML = resultsHtml;
+            document.getElementById('results').classList.remove('hidden');
+            
+            // Animate confidence bar
+            setTimeout(() => {
+                const bar = document.querySelector('.confidence-bar');
+                const width = bar.style.width;
+                bar.style.width = '0%';
+                setTimeout(() => {
+                    bar.style.width = width;
+                }, 100);
+            }, 100);
+        }
+    </script>
+</body>
+</html>

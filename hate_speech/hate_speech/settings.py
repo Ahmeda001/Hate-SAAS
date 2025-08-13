@@ -40,6 +40,8 @@ INSTALLED_APPS = [
     'main',
     'users',
     'dashboard',
+    'rest_framework',
+    'api',
     'tailwind',
     'theme',
     'django_browser_reload',
