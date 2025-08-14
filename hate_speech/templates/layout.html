@@ -1,5 +1,4 @@
-{% load static %} 
-{% load static tailwind_tags %}
+{% load static %} {% load static tailwind_tags %}
 <!DOCTYPE html>
 <html lang="en" class="">
   <head>
@@ -8,38 +7,55 @@
     <title>{% block title %}HomePage | Hate Speech{% endblock %}</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}" />
     <script src="{% static 'js/main.js' %}" defer></script>
-    {% tailwind_css %}
-{% block extra_head %}{% endblock %}
+    {% tailwind_css %} {% block extra_head %}{% endblock %}
   </head>
   <body
     class="bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100 transition-colors duration-300 font-sans mx-auto"
   >
     <!-- Navigation -->
     <nav
-      class="bg-white dark:bg-gray-900 shadow-md sticky top-0 z-50 transition-all duration-300"
+      class="sticky top-0 z-50 border-b border-white/20 transition-all duration-300 bg-gradient-to-r from-white/30 via-white/20 to-white/10 dark:from-gray-900/30 dark:via-gray-900/20 dark:to-gray-900/10 backdrop-blur-lg shadow-md"
     >
       <div class="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8">
         <div class="flex justify-between h-16 items-center min-w-[280px]">
           <!-- Logo -->
           <div class="flex-shrink-0">
+            {% if user.is_authenticated %}
+            <a
+              href="{% url 'dashboard' %}"
+              class="text-2xl sm:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-indigo-600 dark:from-indigo-400 dark:to-blue-400 hover-scale animate-fadeIn"
+            >
+              Hate Speech
+            </a>
+            {% else %}
             <a
               href="{% url 'home' %}"
               class="text-2xl sm:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-indigo-600 dark:from-indigo-400 dark:to-blue-400 hover-scale animate-fadeIn"
             >
               Hate Speech
             </a>
+            {% endif %}
           </div>
 
           <!-- Desktop Navigation Links -->
           <div class="hidden md:flex items-center space-x-6">
+            {% if user.is_authenticated %}
+            <a
+              href="{% url 'dashboard' %}"
+              class="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium text-sm lg:text-base transition-colors duration-200"
+            >
+              Home
+            </a>
+            {% else %}
             <a
               href="{% url 'home' %}"
               class="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium text-sm lg:text-base transition-colors duration-200"
             >
               Home
             </a>
+            {% endif %}
             <a
               href="{% url 'pricing' %}"
               class="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium text-sm lg:text-base transition-colors duration-200"
@@ -65,7 +81,7 @@
               <!-- Dark Mode Toggle -->
               <button
                 onclick="toggleDarkMode()"
-                class="p-1.5 sm:p-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-all duration-200"
+                class="p-1.5 sm:p-2 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full transition-all duration-200"
                 aria-label="Toggle dark mode"
               >
                 <svg
@@ -122,7 +138,8 @@
                   tabindex="0"
                   class="menu dropdown-content mt-3 z-10 p-2 shadow bg-white dark:bg-gray-800 rounded-box w-52 text-gray-900 dark:text-gray-100"
                 >
-                  {% comment %} <li>
+                  {% comment %}
+                  <li>
                     <a class="hover:bg-blue-100 dark:hover:bg-blue-900"
                       >Profile <span class="badge badge-primary">New</span></a
                     >
@@ -131,9 +148,12 @@
                     <a class="hover:bg-blue-100 dark:hover:bg-blue-900"
                       >Settings</a
                     >
-                  </li> {% endcomment %}
+                  </li>
+                  {% endcomment %}
                   <li>
-                    <a href="{% url 'logout' %}" class="hover:bg-blue-100 dark:hover:bg-blue-900"
+                    <a
+                      href="{% url 'logout' %}"
+                      class="hover:bg-blue-100 dark:hover:bg-blue-900"
                       >Logout</a
                     >
                   </li>
@@ -141,13 +161,13 @@
                 {% else %}
                 <a
                   href="{% url 'login' %}"
-                  class="px-4 py-2 text-sm font-medium text-white dark:text-white bg-gradient-to-r from-blue-500 to-indigo-600 dark:from-indigo-400 dark:to-blue-400 rounded-full hover:bg-blue-100 dark:hover:bg-blue-900 transition-all duration-200 mx-2"
+                  class="px-4 py-2 text-sm font-medium text-white dark:text-white rounded-full mx-2 bg-blue-600   hover:shadow-lg  hover:opacity-90 bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-700 hover:to-indigo-600 dark:from-indigo-500 dark:to-blue-500 dark:hover:from-blue-500 dark:hover:to-blue-400 hover-scale-100 transition-all duration-200"
                 >
                   Login
                 </a>
                 <a
                   href="{% url 'signup' %}"
-                  class="px-4 py-2 text-sm font-medium text-gray-900 dark:text-gray-100 bg-gray-100 dark:bg-gray-700 rounded-full hover:bg-blue-100 dark:hover:bg-blue-900 transition-all duration-200"
+                  class="px-4 py-2 text-sm font-medium text-gray-900 dark:text-gray-100 bg-gray-100 dark:bg-gray-700 rounded-full hover:bg-blue-200 dark:hover:bg-blue-900 transition-all duration-200 "
                 >
                   Sign up
                 </a>
@@ -209,15 +229,12 @@
     </nav>
 
     <!-- Main Content -->
-    <main class="mx-auto">
-      {% block content %} {% endblock %}
-    </main>
+    <main class="mx-auto">{% block content %} {% endblock %}</main>
 
-    <footer class="py-8 px-6 bg-gray-200 dark:bg-gray-800 text-center">
-      <p class="text-gray-600 dark:text-gray-400">
-        &copy; 2025 Hate Speech Detection. All rights reserved.
-      </p>
+    <footer class=" text-center text-gray-500 dark:text-gray-400 text-sm py-8 px-6 bg-gray-200 dark:bg-gray-800 ">
+      <p>AI Guardian Free Version &copy; 2023 | Powered by AI</p>
+     <p class="mt-1 text-xs">Upgrade for advanced content moderation tools</p>
+
     </footer>
-
   </body>
 </html>

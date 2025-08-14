@@ -1,0 +1,237 @@
+{% extends "layout.html" %} {% load static %} {% block title %}Free Text
+Analysis{% endblock %} {% block extra_head %}
+<link href="{% static 'css/dashboard.css' %}" rel="stylesheet" />
+{% endblock %} {% block content %}
+<div
+  class="bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-100 min-h-screen"
+>
+  <div class="max-w-7xl mx-auto px-6 py-8">
+    <!-- Header -->
+    <div class="text-center mb-10">
+      <h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-4">
+        Free Text Analysis
+      </h1>
+      <p class="text-lg text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+        Detect hate speech with AI — <strong>Free for basic use</strong>.
+        Upgrade for advanced features.
+      </p>
+    </div>
+
+    <!-- Main Interface -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+      <!-- Input Section -->
+      <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-md">
+        <div class="mb-6">
+          <h2
+            class="text-xl font-semibold text-gray-800 dark:text-gray-100 flex items-center"
+          >
+            <i class="fas fa-edit text-primary mr-2"></i>
+            Text Input
+          </h2>
+          <p class="text-sm text-gray-500 dark:text-gray-400">
+            Enter up to 500 characters for analysis
+          </p>
+        </div>
+
+        <form method="post">
+          {% csrf_token %}
+          <div class="relative">
+            <textarea
+              name="text"
+              placeholder="Enter your text here..."
+              class="w-full h-56 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white resize-none"
+              maxlength="500"
+            >
+            {{ request.POST.text }}</textarea>
+            <div
+              class="absolute bottom-2 right-3 text-sm text-gray-500 dark:text-gray-400"
+            >
+              {{ request.POST.text|length|default:0 }} / 500
+            </div>
+          </div>
+
+          <div>
+            <label
+              class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center"
+            >
+              <i class="fas fa-cogs text-blue-500 mr-2"></i>
+              Detection Model
+            </label>
+            <select
+              class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-white"
+              disabled
+            >
+              <option value="fast">Fast Detection (Free)</option>
+            </select>
+            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              Upgrade to unlock Precision, Contextual & Multi-Model AI
+            </p>
+          </div>
+
+          <div>
+            <label
+              class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center"
+            >
+              <i class="fas fa-language text-teal-500 mr-2"></i>
+              Language
+            </label>
+            <select
+              class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-white"
+              disabled
+            >
+              <option value="en">English Only (Free)</option>
+            </select>
+          </div>
+
+          <button
+            type="submit"
+            class="w-full px-5 my-5 py-3 gradient-bg text-white font-medium rounded-lg shadow hover:opacity-90 transition flex items-center justify-center"
+          >
+            <i class="fas fa-magnifying-glass mr-2"></i>
+            Analyze Text
+          </button>
+        </form>
+      </div>
+
+      <!-- Results Section -->
+      <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-md">
+        <div class="mb-6">
+          <h2
+            class="text-xl font-semibold text-gray-800 dark:text-gray-100 flex items-center"
+          >
+            <i class="fas fa-chart-line text-green-500 mr-2"></i>
+            Results
+          </h2>
+          <p class="text-sm text-gray-500 dark:text-gray-400">
+            Free version shows basic classification
+          </p>
+        </div>
+
+        {% if result %}
+        <div class="space-y-5">
+          <div
+            class="p-5 rounded-lg border border-gray-200 dark:border-gray-700 {% if result.probability >= 0.5 %}bg-red-50 dark:bg-red-900/30 {% else %}bg-green-50 dark:bg-green-900/30{% endif %}"
+          >
+            <!-- Prediction Text -->
+            <div class="flex items-center justify-between mb-4">
+              <span
+                class="text-lg font-bold {% if result.probability >= 0.5 %}text-red-700 dark:text-red-300 {% else %}text-green-700 dark:text-green-300{% endif %}"
+              >
+                {{ result.label }}
+              </span>
+              <span
+                class="text-xl font-bold {% if result.probability >= 0.5 %}text-red-700 dark:text-red-300 {% else %}text-green-700 dark:text-green-300{% endif %}"
+              >
+                {{ result.probability|floatformat:2 }}
+              </span>
+            </div>
+
+            <!-- Probability Bar -->
+            <div
+              class="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-3 overflow-hidden mb-3"
+            >
+              <div
+                class="{% if result.probability >= 0.5 %}bg-red-500{% else %}bg-green-500{% endif %} h-3"
+                style="width: {{ result.probability_percent|floatformat:0 }}%;"
+              ></div>
+            </div>
+
+            <!-- Message -->
+            <div
+              class="text-sm font-medium {% if result.probability >= 0.5 %}text-red-800 dark:text-red-300 {% else %}text-green-800 dark:text-green-300{% endif %}"
+            >
+              {% if result.probability >= 0.5 %} ⚠️ Harmful content detected —
+              please review before publishing. {% else %} ✅ No harmful content
+              detected — safe to publish. {% endif %}
+            </div>
+
+            <!-- Extra Encouragement -->
+            <p class="mt-3 text-xs text-gray-500 dark:text-gray-400 italic">
+              AI Guardian tip: Even safe results should be reviewed by a human
+              before posting online.
+            </p>
+          </div>
+        </div>
+        {% else %}
+        <div class="text-center py-20">
+          <div
+            class="w-16 h-16 mx-auto mb-4 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center text-2xl text-gray-400"
+          >
+            <i class="fas fa-brain"></i>
+          </div>
+          <p class="text-gray-500 dark:text-gray-400 text-sm">
+            Enter text to analyze
+          </p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+    <!-- Upgrade CTA -->
+        <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-md mb-8 animate-slide-up" style="animation-delay: 0.7s">
+            <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-4 text-center">Want More Features?</h3>
+            <p class="text-gray-600 dark:text-gray-300 mb-6 text-center">Upgrade to Standard or Pro for longer texts, multiple languages, and real-time analysis.</p>
+            <div class="flex flex-wrap justify-center gap-5 mb-6">
+                <div class="text-center px-5 py-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg min-w-36">
+                    <div class="text-2xl font-bold text-teal-600 dark:text-teal-400">2K</div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400">Max Length</div>
+                </div>
+                <div class="text-center px-5 py-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg min-w-36">
+                    <div class="text-2xl font-bold text-green-600 dark:text-green-400">4</div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400">Languages</div>
+                </div>
+                <div class="text-center px-5 py-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg min-w-36">
+                    <div class="text-lg font-bold text-yellow-600 dark:text-yellow-400">Real-time</div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400">Analysis</div>
+                </div>
+            </div>
+            <div class="text-center">
+                <a href="#" class="px-6 py-2 gradient-bg text-white rounded-full font-medium hover:opacity-90 inline-block">
+                    Upgrade Now
+                </a>
+            </div>
+        </div>
+
+        <!-- Features -->
+        <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-md animate-slide-up" style="animation-delay: 0.9s">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-5 flex items-center">
+                <i class="fas fa-star text-blue-500 mr-2"></i>
+                Free Version Features
+            </h3>
+            <div class="space-y-3">
+                <div class="flex items-center space-x-3 text-gray-700 dark:text-gray-300">
+                    <i class="fas fa-check-circle text-green-500"></i>
+                    <span>Fast hate speech detection (1 model)</span>
+                </div>
+                <div class="flex items-center space-x-3 text-gray-700 dark:text-gray-300">
+                    <i class="fas fa-check-circle text-green-500"></i>
+                    <span>Up to 500 characters</span>
+                </div>
+                <div class="flex items-center space-x-3 text-gray-700 dark:text-gray-300">
+                    <i class="fas fa-check-circle text-green-500"></i>
+                    <span>English language only</span>
+                </div>
+                <div class="flex items-center space-x-3 text-gray-500 dark:text-gray-500">
+                    <i class="fas fa-lock"></i>
+                    <span>Multi-language support <span class="text-xs">(Pro)</span></span>
+                </div>
+                <div class="flex items-center space-x-3 text-gray-500 dark:text-gray-500">
+                    <i class="fas fa-lock"></i>
+                    <span>Contextual understanding <span class="text-xs">(Pro)</span></span>
+                </div>
+                <div class="flex items-center space-x-3 text-gray-500 dark:text-gray-500">
+                    <i class="fas fa-lock"></i>
+                    <span>Export & API access <span class="text-xs">(Pro)</span></span>
+                </div>
+            </div>
+        </div>
+
+  </div>
+  
+  
+
+  <footer class="text-center text-gray-500 dark:text-gray-400 text-sm py-6">
+    <p>AI Guardian Free Version © 2023 | Powered by AI</p>
+    <p class="mt-1 text-xs">Upgrade for advanced content moderation tools</p>
+  </footer>
+</div>
+{% endblock %}

@@ -1,0 +1,51 @@
+.card-hover {
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.card-hover:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.animate-fade-in {
+    animation: fadeIn 0.5s ease-in;
+}
+
+.animate-slide-up {
+    animation: slideUp 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+.tab-active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.progress-bar {
+    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+}
+
+.metric-card {
+    background: white;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: transform 0.2s;
+}
+
+.metric-card:hover {
+    transform: translateY(-2px);
+}
+
+.dark .metric-card {
+    background: #1f2937;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}

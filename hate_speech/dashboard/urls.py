@@ -25,9 +25,9 @@ from . import views
 urlpatterns = [
     # path('admin/', admin.site.urls),
     path('', views.dashboard , name= 'dashboard'),
-    path('new/', views.new , name= 'new'),
-    # path('signup/', views.user_signup , name= 'signup'),
-    # path('logout/', views.user_logout , name= 'logout'),
+    path('detect/', views.detect , name= 'detect'),
+    # path('neww/', views.neww , name= 'neww'),
+    # path('new2/', views.new2 , name= 'new2'),
 
     
     
