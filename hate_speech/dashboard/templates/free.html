@@ -192,6 +192,19 @@ Analysis{% endblock %} {% block extra_head %}
               before posting online.
             </p>
           </div>
+          {% if result.scan_id %}
+      <p>Was this prediction helpful?</p>
+      <form method="post" action="{% url 'give_feedback' %}">
+        {% csrf_token %}
+        <input type="hidden" name="scan_id" value="{{ result.scan_id }}">
+        <button type="submit" name="feedback" value="true"class="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-700 transition-colors hover:scale-105 mr-2">
+          👍 Yes
+        </button>
+        <button type="submit" name="feedback" value="false"class="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-700 hover:scale-105 transition-colors">
+          👎 No
+        </button>
+      </form>
+    {% endif %}
         </div>
         {% else %}
         <div class="text-center py-20">

@@ -1,8 +1,10 @@
-{% extends "layout.html" %} {% load static %} {% block title%}Dashboard{%endblock %} {% block extra_head %}
+{% extends "layout.html" %} {% load static %} 
+{% block title%}Dashboard{%endblock %} {% block extra_head %}
 <link href="{% static 'css/dashboard.css' %}" rel="stylesheet" />
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
 <script src="{% static 'js/dashboard_script.js' %}" defer></script>
+<script src="{% static 'js/chart.js' %}" defer></script>
 <style>
   /* Enhanced animations and effects */
   @keyframes pulse-glow {
@@ -84,7 +86,19 @@
     color: white;
   }
 
+  .dark .analytics-tab:not(.tab-active){
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  .analytics-tab:not(.tab-active){
+    background-color: var(--color-gray-100);
+  }
+  
   .analytics-tab:not(.tab-active):hover {
+    background-color: var(--color-gray-200);
+  }
+
+  .dark .analytics-tab:not(.tab-active):hover {
     background: rgba(102, 126, 234, 0.1);
   }
 
@@ -101,7 +115,6 @@
     border: 1px solid rgba(255, 255, 255, 0.1);
   }
 
-
   .glass-effect-chart {
     background-color: var(--color-gray-100);
     backdrop-filter: blur(10px);
@@ -110,7 +123,7 @@
 
   /* Dark mode */
   .dark .glass-effect-chart {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(0, 0, 0, 0.2);
     backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.1);
   }
@@ -164,7 +177,7 @@
           <div class="flex items-center gap-4">
             <!-- Enhanced User + credits card -->
             <div
-              class="bg-white dark:bg-gray-800 rounded-xl p-4 flex items-center gap-4 shadow-lg card-hover glass-effect"
+              class="bg-gray-100 dark:bg-gray-800 rounded-xl p-4 flex items-center gap-4 shadow-lg card-hover glass-effect-chart"
             >
               <div class="relative">
                 <img
@@ -217,7 +230,7 @@
             <!-- Quick Stats Mini Cards -->
             <div class="hidden md:flex gap-3">
               <div
-                class="bg-green-50 dark:bg-green-900/20 rounded-lg p-3 card-hover"
+                class="bg-green-100 dark:bg-green-900/20 rounded-lg p-3 card-hover"
               >
                 <div
                   class="text-xs text-green-600 dark:text-green-400 font-medium"
@@ -231,7 +244,7 @@
                 </div>
               </div>
               <div
-                class="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3 card-hover"
+                class="bg-blue-100 dark:bg-blue-900/20 rounded-lg p-3 card-hover"
               >
                 <div
                   class="text-xs text-blue-600 dark:text-blue-400 font-medium"
@@ -330,60 +343,97 @@
         </div>
 
         <!-- Enhanced Center Panel with Real-time Updates -->
-        <div id="centerPanel" class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-animate-slide-in glass-effect">
-
-        <div class="border-b border-gray-200 rounded-2xl dark:border-gray-700 bg-gradient-to-r from-gray-100 to-white dark:from-gray-800 dark:to-gray-700">
-            <nav class="flex px-6 py-6 whitespace-nowrap overflow-x-auto
-              {% if user_type != 'pro' %} space-x-1 {% else %} justify-between {% endif %}">
-              
+        <div
+          id="centerPanel"
+          class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-animate-slide-in glass-effect"
+        >
+          <div
+            class="border-b border-gray-200 rounded-2xl dark:border-gray-700 bg-gradient-to-r from-gray-100 to-white dark:from-gray-800 dark:to-gray-700"
+          >
+            <nav
+              class="flex px-6 py-6 whitespace-nowrap overflow-x-auto {% if user_type != 'pro' %} space-x-1 {% else %} justify-between {% endif %}"
+            >
               <button
                 class="analytics-tab {% if user_type != 'pro' %}flex-1{% endif %} px-6 py-3 rounded-lg text-sm font-semibold transition-all duration-300 flex items-center gap-2 tab-active card-hover"
                 data-tab="overview"
               >
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                <svg
+                  class="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                  />
                 </svg>
                 Performance Overview
               </button>
 
               <button
-                class="analytics-tab {% if user_type != 'pro' %}flex-1 opacity-50 cursor-not-allowed pointer-events-none{% endif %} px-6 py-3 rounded-lg text-sm font-semibold transition-all duration-300 flex items-center gap-2"
+                class="analytics-tab {% if user_type != 'pro' %}flex-1 opacity-50 cursor-not-allowed pointer-events-none{% endif %} px-6 py-3 rounded-lg text-sm font-semibold transition-all duration-300 flex items-center gap-2 card-hover"
                 data-tab="accuracy"
               >
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                <svg
+                  class="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
                 </svg>
                 Accuracy Metrics{% if user_type != 'pro' %} 🔒{% endif %}
               </button>
 
               <button
-                class="analytics-tab {% if user_type != 'pro' %}flex-1 opacity-50 cursor-not-allowed pointer-events-none{% endif %} px-6 py-3 rounded-lg text-sm font-semibold transition-all duration-300 flex items-center gap-2"
+                class="analytics-tab {% if user_type != 'pro' %}flex-1 opacity-50 cursor-not-allowed pointer-events-none{% endif %} px-6 py-3 rounded-lg text-sm font-semibold transition-all duration-300 flex items-center gap-2 card-hover"
                 data-tab="trends"
               >
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+                <svg
+                  class="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
+                  />
                 </svg>
                 Trend Analysis{% if user_type != 'pro' %} 🔒{% endif %}
               </button>
 
               <button
-                class="analytics-tab {% if user_type != 'pro' %}flex-1 opacity-50 cursor-not-allowed pointer-events-none{% endif %} px-6 py-3 rounded-lg text-sm font-semibold transition-all duration-300 flex items-center gap-2"
+                class="analytics-tab {% if user_type != 'pro' %}flex-1 opacity-50 cursor-not-allowed pointer-events-none{% endif %} px-6 py-3 rounded-lg text-sm font-semibold transition-all duration-300 flex items-center gap-2 card-hover"
                 data-tab="comparison"
               >
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                <svg
+                  class="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                  />
                 </svg>
                 User Comparison{% if user_type != 'pro' %} 🔒{% endif %}
               </button>
-
             </nav>
           </div>
-
-          
 
           <!-- Tab Content with Enhanced Animations -->
           <div class="p-8">
@@ -402,9 +452,14 @@
               </div>
 
               <!-- Enhanced Key Metrics Cards with Animations -->
-              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                <div class="metric-card rounded-2xl p-6 card-hover animate-slide-in" style="animation-delay: 0.1s">
-                  <div class="flex items-center justify-between ">
+              <div
+                class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8"
+              >
+                <div
+                  class="metric-card rounded-2xl p-6 card-hover animate-slide-in"
+                  style="animation-delay: 0.1s"
+                >
+                  <div class="flex items-center justify-between">
                     <div>
                       <p
                         class="text-sm text-gray-600 dark:text-gray-400 font-medium mb-1"
@@ -414,7 +469,7 @@
                       <p
                         class="text-3xl font-bold text-green-600 dark:text-green-400 animate-number-count"
                       >
-                        {{ metrics.overall_accuracy|default:"91.7" }}%
+                        {{ accuracy.overall_accuracy }}%
                       </p>
                       <div class="flex items-center gap-1 mt-2">
                         <svg
@@ -429,7 +484,7 @@
                           />
                         </svg>
                         <span class="text-xs text-green-600 font-medium"
-                          >+2.3%</span
+                          >+ {{ accuracy.todays_accuracy }} %</span
                         >
                       </div>
                     </div>
@@ -467,7 +522,7 @@
                       <p
                         class="text-3xl font-bold text-blue-600 dark:text-blue-400 animate-number-count"
                       >
-                        {{ metrics.total_analyses|default:"1,247" }}
+                        {{ total }}
                       </p>
                       <div class="flex items-center gap-1 mt-2">
                         <svg
@@ -482,7 +537,7 @@
                           />
                         </svg>
                         <span class="text-xs text-blue-600 font-medium"
-                          >+156 today</span
+                          >+ {{credits.used}} today</span
                         >
                       </div>
                     </div>
@@ -506,16 +561,13 @@
                   </div>
                 </div>
 
-                <div
-                  class="metric-card rounded-2xl p-6 card-hover animate-slide-in"
-                  style="animation-delay: 0.3s"
-                >
+                <div class="metric-card rounded-2xl p-6 card-hover animate-slide-in" style="animation-delay: 0.3s">
                   <div class="flex items-center justify-between">
                     <div>
                       <p
                         class="text-sm text-gray-600 dark:text-gray-400 font-medium mb-1"
                       >
-                        False Positives
+                        False PositivesHigh-Risk Scans → scans with probability above a threshold (e.g., 0.8)
                       </p>
                       <p
                         class="text-3xl font-bold text-orange-600 dark:text-orange-400 animate-number-count"
@@ -559,16 +611,13 @@
                   </div>
                 </div>
 
-                <div
-                  class="metric-card rounded-2xl p-6 card-hover animate-slide-in"
-                  style="animation-delay: 0.4s"
-                >
+                <div class="metric-card rounded-2xl p-6 card-hover animate-slide-in"style="animation-delay: 0.4s">
                   <div class="flex items-center justify-between">
                     <div>
                       <p
                         class="text-sm text-gray-600 dark:text-gray-400 font-medium mb-1"
                       >
-                        Active Users
+                        Active Users Low Confidence Scans – scans with probability below a threshold (e.g., <0.5).
                       </p>
                       <p
                         class="text-3xl font-bold text-purple-600 dark:text-purple-400 animate-number-count"
@@ -607,7 +656,6 @@
 
               <!-- Enhanced Overview Chart with Real-time Toggle -->
               <div class="bg-gray-100 dark:bg-gray-800/50 rounded-2xl p-8 glass-effect-chart">
-
                 <div class="flex justify-between items-center mb-6">
                   <h3
                     class="text-xl font-bold text-gray-900 dark:text-gray-100"
@@ -615,7 +663,9 @@
                     Daily Performance Overview
                   </h3>
                   <div class="flex items-center gap-3">
-                    <div class="flex items-center gap-2 px-3 py-1 bg-green-100 dark:bg-green-900/30 rounded-full">
+                    <div
+                      class="flex items-center gap-2 px-3 py-1 bg-green-100 dark:bg-green-900/30 rounded-full"
+                    >
                       <div
                         class="w-2 h-2 bg-green-400 rounded-full animate-pulse"
                       ></div>
@@ -634,7 +684,82 @@
                   </div>
                 </div>
 
-                <canvas id="overviewChart" class="w-full" height="350"></canvas>
+                <div class="h-[350px]">
+                  <canvas id="overviewChart"></canvas>
+                </div>
+
+                <script>
+                  document.addEventListener("DOMContentLoaded", () => {
+                    const labels = {{ chart.chart_labels|safe }};
+                    const hateData = {{ chart.chart_hate|safe }};
+                    const safeData = {{ chart.chart_safe|safe }};
+
+                    const ctx = document.getElementById('overviewChart').getContext('2d');
+
+                    new Chart(ctx, {
+                      type: 'line',
+                      data: {
+                        labels: labels,
+                        datasets: [
+                          {
+                            label: 'Hate Speech',
+                            data: hateData,
+                            borderColor: '#ef4444',
+                            backgroundColor: 'rgba(239, 68, 68, 0.2)',
+                            fill: true,
+                            tension: 0.4,
+                            pointBackgroundColor: '#ef4444',
+                            pointRadius: 4,
+                            pointHoverRadius: 6,
+                          },
+                          {
+                            label: 'Safe Speech',
+                            data: safeData,
+                            borderColor: '#10b981',
+                            backgroundColor: 'rgba(16, 185, 129, 0.2)',
+                            fill: true,
+                            tension: 0.4,
+                            pointBackgroundColor: '#10b981',
+                            pointRadius: 4,
+                            pointHoverRadius: 6,
+                          }
+                        ]
+                      },
+                      options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                          legend: {
+                            display: true,
+                            labels: { color: '#6B7280' }
+                          },
+                          tooltip: {
+                            backgroundColor: '#111827',
+                            titleColor: '#fff',
+                            bodyColor: '#fff'
+                          }
+                        },
+                        scales: {
+                          x: {
+                            grid: { display: false },
+                            ticks: { color: '#6B7280' }
+                          },
+                          y: {
+                            beginAtZero: true,
+                            ticks: {
+                              color: '#6B7280',
+                              stepSize: 1, // force step = 1
+                              callback: function(value) {
+                                return Number.isInteger(value) ? value : null;
+                              }
+                            },
+                            grid: { color: 'rgba(107, 114, 128, 0.2)' }
+                          }
+                        }
+                      }
+                    });
+                  });
+                </script>
               </div>
             </div>
 
@@ -1199,14 +1324,18 @@
     <!-- Enhanced Right column (ChatGPT-style sidebar) -->
     <aside class="space-y-6">
       <!-- Enhanced Overview Panel -->
-      <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg glass-effect animate-slide-in">
+      <div
+        class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg glass-effect animate-slide-in"
+      >
         <div id="overviewPanel" class="">
-          <div class="text-sm text-gray-500 dark:text-gray-400 mb-4 font-medium">
+          <div
+            class="text-sm text-gray-500 dark:text-gray-400 mb-4 font-medium"
+          >
             Quick Stats
           </div>
           <div class="grid grid-cols-1 gap-4">
             <div
-              class="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl"
+              class="flex justify-between items-center p-3 bg-gray-100 dark:bg-gray-700/50 rounded-xl"
             >
               <div class="flex items-center gap-2">
                 <div class="w-2 h-2 bg-blue-500 rounded-full"></div>
@@ -1220,7 +1349,7 @@
             </div>
 
             <div
-              class="flex justify-between items-center p-3 bg-red-50 dark:bg-red-900/20 rounded-xl"
+              class="flex justify-between items-center p-3 bg-red-100 dark:bg-red-900/20 rounded-xl"
             >
               <div class="flex items-center gap-2">
                 <div class="w-2 h-2 bg-red-500 rounded-full"></div>
@@ -1232,7 +1361,7 @@
             </div>
 
             <div
-              class="flex justify-between items-center p-3 bg-green-50 dark:bg-green-900/20 rounded-xl"
+              class="flex justify-between items-center p-3 bg-green-100 dark:bg-green-900/20 rounded-xl"
             >
               <div class="flex items-center gap-2">
                 <div class="w-2 h-2 bg-green-500 rounded-full"></div>
@@ -1274,10 +1403,13 @@
           </div>
         </div>
 
-        <ul id="historyList" class="space-y-3 max-h-80 overflow-auto custom-scrollbar">
+        <ul
+          id="historyList"
+          class="space-y-3 max-h-80 overflow-auto custom-scrollbar"
+        >
           {% for row in history %}
           <li
-            class="group p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-300 card-hover"
+            class="group p-4 bg-gray-100 dark:bg-gray-700/50 rounded-xl cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-300 card-hover"
             data-content="{{ row.input_text }}"
             data-label="{{ row.prediction }}"
             data-confidence="{{ row.probability }}"
@@ -1317,7 +1449,7 @@
               </div>
             </div>
           </li>
-          
+
           {% empty %}
           <li class="text-center py-8">
             <svg
@@ -1343,8 +1475,10 @@
           {% endfor %}
         </ul>
         <div class="text-center mt-5">
-          <a href="{% url 'pricing' %}" 
-            class="inline-block px-4 py-2 bg-gradient-to-r from-green-500 to-blue-600 text-white rounded-lg text-sm font-medium hover:scale-105 hover:shadow-lg transition-all duration-300">
+          <a
+            href="{% url 'pricing' %}"
+            class="inline-block px-4 py-2 bg-gradient-to-r from-green-500 to-blue-600 text-white rounded-lg text-sm font-medium hover:scale-105 hover:shadow-lg transition-all duration-300"
+          >
             Upgrade for more
           </a>
         </div>

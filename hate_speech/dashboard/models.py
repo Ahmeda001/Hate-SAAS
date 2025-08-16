@@ -9,7 +9,9 @@ class ScanHistory(models.Model):
     input_text = models.TextField(blank=True, null=True)
     prediction = models.CharField(max_length=50)
     probability = models.FloatField()
+    feedback = models.BooleanField(null=True, blank=True)  
     created_at = models.DateTimeField(auto_now_add=True)
+    
 
     class Meta:
         ordering = ['-created_at']

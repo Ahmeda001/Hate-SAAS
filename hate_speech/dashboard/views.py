@@ -7,7 +7,12 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 from .models import ScanHistory
 import datetime
+from django.utils import timezone
 import requests
+
+from django.utils import timezone
+from django.db.models import Count
+from datetime import timedelta
 
 # @login_required
 # def dashboard(request):
@@ -43,9 +48,77 @@ def dashboard(request):
         "percentage": percentage,
     }
 
+
+    today = timezone.now().date()
+    start_date = today - timedelta(days=6)  # last 7 days
+    
+    # get all scans for the last 7 days
+    scans = (
+        ScanHistory.objects.filter(user=request.user, created_at__date__gte=start_date)
+        .values("created_at__date", "prediction")
+        .annotate(total=Count("id"))
+    )
+    
+    # initialize labels & counts
+    labels = []
+    hate_counts = []
+    safe_counts = []
+    
+    # build a dict for quick lookup
+    scan_dict = {}
+    for row in scans:
+        date_str = row["created_at__date"].strftime("%Y-%m-%d")
+        if date_str not in scan_dict:
+            scan_dict[date_str] = {"hate": 0, "safe": 0}
+        if row["prediction"].lower() == "hate speech detected":
+            scan_dict[date_str]["hate"] = row["total"]
+        else:
+            scan_dict[date_str]["safe"] = row["total"]
+    
+    # loop through each day (so missing days get "0")
+    for i in range(7):
+        day = start_date + timedelta(days=i)
+        day_str = day.strftime("%Y-%m-%d")
+        labels.append(day_str)
+        hate_counts.append(scan_dict.get(day_str, {}).get("hate", 0))
+        safe_counts.append(scan_dict.get(day_str, {}).get("safe", 0))
+    
+    chart = {
+        "chart_labels": labels,
+        "chart_hate": hate_counts,
+        "chart_safe": safe_counts,
+    }
+
+
+
+    # All feedbacks that have been given
+    feedbacks = ScanHistory.objects.filter(user=request.user).exclude(feedback__isnull=True)
+
+    if feedbacks.exists(): 
+        overall_accuracy = (feedbacks.filter(feedback=True).count() / feedbacks.count()) * 100
+    else:
+        overall_accuracy = 0  # No feedback yet
+       
+
+    today = timezone.now().date()
+    todays_feedbacks = ScanHistory.objects.filter(
+        user=request.user,
+        created_at__date=today
+    ).exclude(feedback__isnull=True)
+
+    if todays_feedbacks.exists():
+        todays_accuracy = (todays_feedbacks.filter(feedback=True).count() / todays_feedbacks.count()) * 100
+    else:
+        todays_accuracy = 0
+
+
+
+    
+
      
 
     user_type = 'free'  # Replace this with your real user type logic
+    
     context = {
         'metrics': {
             'overall_accuracy': 91.7,
@@ -59,17 +132,28 @@ def dashboard(request):
         ]
     }
 
-    # credits  = {
-    #     "count": count,
-    #     "per_count": per_count,
-    # }
 
     hate = ScanHistory.objects.filter(prediction="Hate Speech Detected").count()
     safe = ScanHistory.objects.filter(prediction="No Hate Speech").count()
     total = ScanHistory.objects.count()
     history = ScanHistory.objects.filter(user=request.user).order_by("-created_at")[:3]
 
-    return render(request, 'dashboard.html',{**context, "history": history, "hate": hate, "safe": safe, "total": total,"user_type": user_type,"credits": credits})
+
+
+
+
+    
+
+
+    accuracy = {
+        "overall_accuracy": round(overall_accuracy, 1),
+        "todays_accuracy": round(todays_accuracy, 1),
+    }
+
+
+    
+
+    return render(request, 'dashboard.html',{**context, "history": history, "hate": hate, "safe": safe, "total": total,"user_type": user_type,"credits": credits,"chart": chart,"accuracy": accuracy,"percentage": percentage})
 
 
 def api_call_text(text):
@@ -121,14 +205,40 @@ def detect(request):
             result = api_call_text(text)
             result['probability_percent'] = result['probability'] * 100
 
-            ScanHistory.objects.create(
+            auto_feedback = result.get('probability', 0.0) >= 0.7
+
+
+            scan = ScanHistory.objects.create(
                 user=request.user,
                 input_text=text,
                 prediction=result.get('label'),
-                probability=result.get('probability', 0.0)
+                probability=result.get('probability', 0.0),
+                feedback=auto_feedback
             )
 
+
+            result['scan_id'] = scan.id
+
     return render(request, 'free.html', {"result": result, "message": message})
+
+
+
+@login_required
+def give_feedback(request):
+    if request.method == "POST":
+        scan_id = request.POST.get("scan_id")
+        feedback_value = request.POST.get("feedback", "").lower()  # normalize to lowercase
+
+        scan = get_object_or_404(ScanHistory, id=scan_id, user=request.user)
+        if feedback_value == "true":
+            scan.feedback = True
+        elif feedback_value == "false":
+            scan.feedback = False
+        else:
+            scan.feedback = None  # fallback if something else is sent
+        scan.save()
+
+    return redirect("detect")
 
 
 
