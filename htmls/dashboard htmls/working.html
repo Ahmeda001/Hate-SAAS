@@ -1,0 +1,546 @@
+      <!-- Main column -->
+      <div class="space-y-6">
+        <!-- Enhanced Top row with notifications and quick actions -->
+        <div class="flex items-start justify-between gap-4 animate-slide-in">
+          <div class="flex items-center gap-4">
+            <!-- Enhanced User + credits card -->
+            <div class="bg-white dark:bg-gray-800 rounded-xl p-4 flex items-center gap-4 shadow-lg card-hover glass-effect">
+              <div class="relative">
+                <img
+                  src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp"
+                  alt="User Avatar"
+                  class="w-14 h-14 rounded-full ring-2 ring-blue-500 ring-offset-2 dark:ring-offset-gray-800"
+                />
+                <div class="absolute -bottom-1 -right-1 w-5 h-5 bg-green-400 border-2 border-white dark:border-gray-800 rounded-full"></div>
+              </div>
+              <div>
+                <div class="text-base font-bold text-gray-800 dark:text-gray-100 animate-number-count">
+                  {{ user.get_full_name|default:user.username }}
+                </div>
+                <div class="text-sm text-gray-500 dark:text-gray-300 flex items-center gap-2">
+                  <svg class="w-4 h-4 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                  </svg>
+                  Free credits: <span id="freeCredits" class="font-semibold">{{ user.profile.credits|default:12 }}</span>
+                </div>
+                <div class="w-48 h-3 bg-gray-200 dark:bg-gray-700 rounded-full mt-2 overflow-hidden">
+                  <div
+                    id="creditsBar"
+                    class="h-3 progress-bar rounded-full transition-all duration-1000 ease-out"
+                    style="width:{{ user.profile.credits_percentage|default:60 }}%"
+                  ></div>
+                </div>
+                <div class="text-xs text-gray-400 mt-1">{{ user.profile.credits_percentage|default:60 }}% remaining</div>
+              </div>
+            </div>
+            
+            <!-- Quick Stats Mini Cards -->
+            <div class="hidden md:flex gap-3">
+              <div class="bg-green-50 dark:bg-green-900/20 rounded-lg p-3 card-hover">
+                <div class="text-xs text-green-600 dark:text-green-400 font-medium">Today</div>
+                <div class="text-lg font-bold text-green-700 dark:text-green-300 animate-number-count">{{ daily_stats.today|default:"47" }}</div>
+              </div>
+              <div class="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3 card-hover">
+                <div class="text-xs text-blue-600 dark:text-blue-400 font-medium">Week</div>
+                <div class="text-lg font-bold text-blue-700 dark:text-blue-300 animate-number-count">{{ daily_stats.week|default:"312" }}</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Enhanced Action buttons -->
+          <div class="flex items-center gap-3">
+
+            <div class="hidden sm:flex items-center gap-2">
+              <button class="relative p-2 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors card-hover">
+                <svg class="w-5 h-5 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5 5v-5z"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17H4l5 5v-5z"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 12l8-8"/>
+                </svg>
+                <div class="notification-dot"></div>
+              </button>
+              
+              <a href="" class="px-4 py-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-sm text-gray-800 dark:text-gray-100 hover:shadow-lg card-hover transition-all duration-300">
+                <span class="flex items-center gap-2">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                  </svg>
+                  Reports
+                </span>
+              </a>
+            </div>
+
+            <a href="{% url "detect" %}">
+              <button
+              id="newAnalysisBtn"
+              class="px-6 py-3 rounded-lg gradient-bg text-white text-sm font-medium hover:opacity-90 card-hover animate-pulse-glow"
+            >
+              <span class="flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                </svg>
+                New Analysis
+              </span>
+            </button>
+            </a>
+            
+          </div>
+        </div>
+
+        <!-- Enhanced Center Panel with Real-time Updates -->
+        <div id="centerPanel"class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden animate-slide-in glass-effect">
+          <!-- Enhanced Tab Navigation with Progress Indicators -->
+          <div class="border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-gray-50 to-white dark:from-gray-800 dark:to-gray-700">
+            <nav class="flex space-x-1 px-6 py-4">
+              <button
+                class="analytics-tab tab-active px-6 py-3 rounded-lg text-sm font-semibold transition-all duration-300 flex items-center gap-2"
+                data-tab="overview"
+              >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                </svg>
+                Performance Overview
+              </button>
+              <button
+                class="analytics-tab px-6 py-3 rounded-lg text-sm font-semibold transition-all duration-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+                data-tab="accuracy"
+              >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                Accuracy Metrics
+              </button>
+              <button
+                class="analytics-tab px-6 py-3 rounded-lg text-sm font-semibold transition-all duration-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+                data-tab="trends"
+              >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+                </svg>
+                Trend Analysis
+              </button>
+              <button
+                class="analytics-tab px-6 py-3 rounded-lg text-sm font-semibold transition-all duration-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+                data-tab="comparison"
+              >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                </svg>
+                User Comparison
+              </button>
+            </nav>
+          </div>
+
+          <!-- Tab Content with Enhanced Animations -->
+          <div class="p-8">
+            <!-- Overview Tab -->
+            <div id="overview-content" class="tab-content animate-fade-in">
+              <div class="mb-8">
+                <h2 class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-3 animate-slide-in">
+                  Performance Dashboard
+                </h2>
+                <p class="text-gray-600 dark:text-gray-400 text-lg">
+                  Monitor user accuracy and detection performance across all analyses with real-time insights
+                </p>
+              </div>
+
+              <!-- Enhanced Key Metrics Cards with Animations -->
+              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="metric-card rounded-2xl p-6 card-hover animate-slide-in" style="animation-delay: 0.1s">
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <p class="text-sm text-gray-600 dark:text-gray-400 font-medium mb-1">Overall Accuracy</p>
+                      <p class="text-3xl font-bold text-green-600 dark:text-green-400 animate-number-count">
+                        {{ metrics.overall_accuracy|default:"91.7" }}%
+                      </p>
+                      <div class="flex items-center gap-1 mt-2">
+                        <svg class="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                          <path fill-rule="evenodd" d="M3.293 9.707a1 1 0 010-1.414l6-6a1 1 0 011.414 0l6 6a1 1 0 01-1.414 1.414L11 5.414V17a1 1 0 11-2 0V5.414L4.707 9.707a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+                        </svg>
+                        <span class="text-xs text-green-600 font-medium">+2.3%</span>
+                      </div>
+                    </div>
+                    <div class="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-2xl flex items-center justify-center">
+                      <svg class="w-8 h-8 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="metric-card rounded-2xl p-6 card-hover animate-slide-in" style="animation-delay: 0.2s">
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <p class="text-sm text-gray-600 dark:text-gray-400 font-medium mb-1">Total Analyses</p>
+                      <p class="text-3xl font-bold text-blue-600 dark:text-blue-400 animate-number-count">
+                        {{ metrics.total_analyses|default:"1,247" }}
+                      </p>
+                      <div class="flex items-center gap-1 mt-2">
+                        <svg class="w-4 h-4 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                          <path fill-rule="evenodd" d="M3.293 9.707a1 1 0 010-1.414l6-6a1 1 0 011.414 0l6 6a1 1 0 01-1.414 1.414L11 5.414V17a1 1 0 11-2 0V5.414L4.707 9.707a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+                        </svg>
+                        <span class="text-xs text-blue-600 font-medium">+156 today</span>
+                      </div>
+                    </div>
+                    <div class="w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-2xl flex items-center justify-center">
+                      <svg class="w-8 h-8 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="metric-card rounded-2xl p-6 card-hover animate-slide-in" style="animation-delay: 0.3s">
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <p class="text-sm text-gray-600 dark:text-gray-400 font-medium mb-1">False Positives</p>
+                      <p class="text-3xl font-bold text-orange-600 dark:text-orange-400 animate-number-count">
+                        {{ metrics.false_positives|default:"3.2" }}%
+                      </p>
+                      <div class="flex items-center gap-1 mt-2">
+                        <svg class="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                          <path fill-rule="evenodd" d="M16.707 10.293a1 1 0 010 1.414l-6 6a1 1 0 01-1.414 0l-6-6a1 1 0 111.414-1.414L9 14.586V3a1 1 0 012 0v11.586l4.293-4.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                        </svg>
+                        <span class="text-xs text-green-600 font-medium">-0.8%</span>
+                      </div>
+                    </div>
+                    <div class="w-16 h-16 bg-orange-100 dark:bg-orange-900/30 rounded-2xl flex items-center justify-center">
+                      <svg class="w-8 h-8 text-orange-600 dark:text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="metric-card rounded-2xl p-6 card-hover animate-slide-in" style="animation-delay: 0.4s">
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <p class="text-sm text-gray-600 dark:text-gray-400 font-medium mb-1">Active Users</p>
+                      <p class="text-3xl font-bold text-purple-600 dark:text-purple-400 animate-number-count">
+                        {{ metrics.active_users|default:"3" }}
+                      </p>
+                      <div class="flex items-center gap-1 mt-2">
+                        <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                        <span class="text-xs text-gray-600 font-medium">All online</span>
+                      </div>
+                    </div>
+                    <div class="w-16 h-16 bg-purple-100 dark:bg-purple-900/30 rounded-2xl flex items-center justify-center">
+                      <svg class="w-8 h-8 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"/>
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Enhanced Overview Chart with Real-time Toggle -->
+              <div class="bg-gray-50 dark:bg-gray-800/50 rounded-2xl p-8 glass-effect">
+                <div class="flex justify-between items-center mb-6">
+                  <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100">Daily Performance Overview</h3>
+                  <div class="flex items-center gap-3">
+                    <div class="flex items-center gap-2 px-3 py-1 bg-green-100 dark:bg-green-900/30 rounded-full">
+                      <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                      <span class="text-xs font-medium text-green-700 dark:text-green-300">Live</span>
+                    </div>
+                    <select class="px-3 py-1 text-sm bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg">
+                      <option>Last 7 days</option>
+                      <option>Last 30 days</option>
+                      <option>Last 3 months</option>
+                    </select>
+                  </div>
+                </div>
+                <canvas id="overviewChart" class="w-full" height="350"></canvas>
+              </div>
+            </div>
+
+            <!-- Enhanced Accuracy Tab -->
+            <div id="accuracy-content" class="tab-content hidden">
+              <div class="mb-8">
+                <div class="flex justify-between items-start">
+                  <div>
+                    <h2 class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-3">User Accuracy Metrics</h2>
+                    <p class="text-gray-600 dark:text-gray-400 text-lg">Detailed accuracy breakdown and performance insights for each user</p>
+                  </div>
+                  <button class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">
+                    Export Data
+                  </button>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Enhanced User Accuracy Chart -->
+                <div class="bg-gray-50 dark:bg-gray-800/50 rounded-2xl p-8 glass-effect">
+                  <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100">User Accuracy Comparison</h3>
+                    <div class="flex gap-2">
+                      <button class="px-3 py-1 text-xs bg-blue-500 text-white rounded-md">Chart</button>
+                      <button class="px-3 py-1 text-xs bg-gray-200 dark:bg-gray-700 rounded-md">Table</button>
+                    </div>
+                  </div>
+                  <canvas id="accuracyChart" class="w-full" height="350"></canvas>
+                </div>
+
+                <!-- Enhanced User Performance Table -->
+                <div class="bg-gray-50 dark:bg-gray-800/50 rounded-2xl p-8 glass-effect">
+                  <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100">Detailed Performance</h3>
+                    <button class="text-sm text-blue-500 hover:text-blue-600">View All</button>
+                  </div>
+                  <div class="space-y-6 custom-scrollbar max-h-96 overflow-y-auto">
+                    {% for user_metric in user_metrics %}
+                    <div class="flex items-center justify-between p-6 bg-white dark:bg-gray-700 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 card-hover">
+                      <div class="flex items-center space-x-4">
+                        <div class="relative">
+                          <div class="w-12 h-12 bg-gradient-to-r from-{{ user_metric.color_from }} to-{{ user_metric.color_to }} rounded-full flex items-center justify-center shadow-lg">
+                            <span class="text-white font-bold text-sm">{{ user_metric.initial }}</span>
+                          </div>
+                          <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 border-2 border-white dark:border-gray-700 rounded-full"></div>
+                        </div>
+                        <div>
+                          <p class="font-semibold text-gray-900 dark:text-gray-100">{{ user_metric.name }}</p>
+                          <p class="text-sm text-gray-500 dark:text-gray-400">{{ user_metric.analyses_count }} analyses</p>
+                          <div class="flex items-center gap-2 mt-1">
+                            <span class="text-xs bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 px-2 py-1 rounded-full">Active</span>
+                            <span class="text-xs text-gray-400">Last seen: 2 min ago</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="text-right">
+                        <p class="text-2xl font-bold text-{{ user_metric.color }}-600 dark:text-{{ user_metric.color }}-400">
+                          {{ user_metric.accuracy }}%
+                        </p>
+                        <div class="w-24 h-3 bg-gray-200 dark:bg-gray-600 rounded-full overflow-hidden mt-2">
+                          <div
+                            class="h-full bg-{{ user_metric.color }}-500 rounded-full transition-all duration-1000 ease-out"
+                            style="width: {{ user_metric.accuracy }}%"
+                          ></div>
+                        </div>
+                        <div class="flex items-center justify-end gap-1 mt-2">
+                          <svg class="w-3 h-3 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M3.293 9.707a1 1 0 010-1.414l6-6a1 1 0 011.414 0l6 6a1 1 0 01-1.414 1.414L11 5.414V17a1 1 0 11-2 0V5.414L4.707 9.707a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+                          </svg>
+                          <span class="text-xs text-green-600 font-medium">+1.2%</span>
+                        </div>
+                      </div>
+                    </div>
+                    {% empty %}
+                    <div class="text-center py-12">
+                      <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
+                      </svg>
+                      <p class="text-gray-600 dark:text-gray-400 font-medium">No user metrics available</p>
+                      <p class="text-gray-500 dark:text-gray-500 text-sm mt-1">Start analyzing to see performance data</p>
+                    </div>
+                    {% endfor %}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Enhanced Trends Tab -->
+            <div id="trends-content" class="tab-content hidden">
+              <div class="mb-8">
+                <div class="flex justify-between items-start">
+                  <div>
+                    <h2 class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-3">Performance Trends</h2>
+                    <p class="text-gray-600 dark:text-gray-400 text-lg">Track accuracy improvements and patterns over time with predictive insights</p>
+                  </div>
+                  <div class="flex items-center gap-3">
+                    <div class="flex items-center gap-2 px-3 py-1 bg-blue-100 dark:bg-blue-900/30 rounded-full">
+                      <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                      </svg>
+                      <span class="text-xs font-medium text-blue-700 dark:text-blue-300">Auto-refresh</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Enhanced Trend Statistics Cards -->
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 rounded-2xl p-6 card-hover">
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <p class="text-green-700 dark:text-green-300 text-sm font-medium">Weekly Improvement</p>
+                      <p class="text-3xl font-bold text-green-800 dark:text-green-200">+4.7%</p>
+                      <p class="text-xs text-green-600 dark:text-green-400 mt-1">vs last week</p>
+                    </div>
+                    <div class="w-12 h-12 bg-green-200 dark:bg-green-800/40 rounded-xl flex items-center justify-center">
+                      <svg class="w-6 h-6 text-green-700 dark:text-green-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-2xl p-6 card-hover">
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <p class="text-blue-700 dark:text-blue-300 text-sm font-medium">Prediction Score</p>
+                      <p class="text-3xl font-bold text-blue-800 dark:text-blue-200">94.2%</p>
+                      <p class="text-xs text-blue-600 dark:text-blue-400 mt-1">next week estimate</p>
+                    </div>
+                    <div class="w-12 h-12 bg-blue-200 dark:bg-blue-800/40 rounded-xl flex items-center justify-center">
+                      <svg class="w-6 h-6 text-blue-700 dark:text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 rounded-2xl p-6 card-hover">
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <p class="text-purple-700 dark:text-purple-300 text-sm font-medium">Consistency Rate</p>
+                      <p class="text-3xl font-bold text-purple-800 dark:text-purple-200">87.5%</p>
+                      <p class="text-xs text-purple-600 dark:text-purple-400 mt-1">stable performance</p>
+                    </div>
+                    <div class="w-12 h-12 bg-purple-200 dark:bg-purple-800/40 rounded-xl flex items-center justify-center">
+                      <svg class="w-6 h-6 text-purple-700 dark:text-purple-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="bg-gray-50 dark:bg-gray-800/50 rounded-2xl p-8 glass-effect">
+                <div class="flex items-center justify-between mb-6">
+                  <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100">Advanced Trend Analysis</h3>
+                  <div class="flex space-x-3">
+                    <button class="px-4 py-2 text-sm bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">7D</button>
+                    <button class="px-4 py-2 text-sm bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">30D</button>
+                    <button class="px-4 py-2 text-sm bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">90D</button>
+                  </div>
+                </div>
+                <canvas id="trendsChart" class="w-full" height="450"></canvas>
+              </div>
+            </div>
+
+            <!-- Enhanced Comparison Tab -->
+            <div id="comparison-content" class="tab-content hidden">
+              <div class="mb-8">
+                <div class="flex justify-between items-start">
+                  <div>
+                    <h2 class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-3">User Comparison</h2>
+                    <p class="text-gray-600 dark:text-gray-400 text-lg">Compare performance metrics and identify top performers across all users</p>
+                  </div>
+                  <div class="flex items-center gap-3">
+                    <select class="px-3 py-2 text-sm bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg">
+                      <option>All Users</option>
+                      <option>Top Performers</option>
+                      <option>Recent Activity</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Enhanced Radar Chart -->
+                <div class="bg-gray-50 dark:bg-gray-800/50 rounded-2xl p-8 glass-effect">
+                  <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100">Performance Radar</h3>
+                    <div class="flex items-center gap-2">
+                      <div class="flex items-center gap-1">
+                        <div class="w-3 h-3 bg-blue-500 rounded-full"></div>
+                        <span class="text-xs text-gray-600 dark:text-gray-400">User 1</span>
+                      </div>
+                      <div class="flex items-center gap-1">
+                        <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                        <span class="text-xs text-gray-600 dark:text-gray-400">User 2</span>
+                      </div>
+                      <div class="flex items-center gap-1">
+                        <div class="w-3 h-3 bg-purple-500 rounded-full"></div>
+                        <span class="text-xs text-gray-600 dark:text-gray-400">User 3</span>
+                      </div>
+                    </div>
+                  </div>
+                  <canvas id="radarChart" class="w-full" height="350"></canvas>
+                </div>
+
+                <!-- Enhanced Detailed Metrics -->
+                <div class="bg-gray-50 dark:bg-gray-800/50 rounded-2xl p-8 glass-effect">
+                  <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-6">Detailed Metrics</h3>
+                  <div class="space-y-8">
+                    <!-- Precision Section -->
+                    <div>
+                      <div class="flex justify-between items-center mb-4">
+                        <span class="text-lg font-semibold text-gray-800 dark:text-gray-200">Precision</span>
+                        <span class="text-sm text-gray-500 dark:text-gray-400">Average: 89.3%</span>
+                      </div>
+                      {% for user_metric in user_metrics %}
+                      <div class="space-y-3 mb-4">
+                        <div class="flex justify-between text-sm">
+                          <div class="flex items-center gap-2">
+                            <div class="w-4 h-4 bg-{{ user_metric.color }}-500 rounded-full"></div>
+                            <span class="font-medium">{{ user_metric.name }}</span>
+                          </div>
+                          <span class="font-semibold">{{ user_metric.precision }}%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
+                          <div
+                            class="bg-gradient-to-r from-{{ user_metric.color }}-400 to-{{ user_metric.color }}-600 h-3 rounded-full transition-all duration-1000 ease-out"
+                            style="width: {{ user_metric.precision }}%"
+                          ></div>
+                        </div>
+                      </div>
+                      {% endfor %}
+                    </div>
+
+                    <!-- Recall Section -->
+                    <div>
+                      <div class="flex justify-between items-center mb-4">
+                        <span class="text-lg font-semibold text-gray-800 dark:text-gray-200">Recall</span>
+                        <span class="text-sm text-gray-500 dark:text-gray-400">Average: 91.7%</span>
+                      </div>
+                      {% for user_metric in user_metrics %}
+                      <div class="space-y-3 mb-4">
+                        <div class="flex justify-between text-sm">
+                          <div class="flex items-center gap-2">
+                            <div class="w-4 h-4 bg-{{ user_metric.color }}-500 rounded-full"></div>
+                            <span class="font-medium">{{ user_metric.name }}</span>
+                          </div>
+                          <span class="font-semibold">{{ user_metric.recall }}%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
+                          <div
+                            class="bg-gradient-to-r from-{{ user_metric.color }}-400 to-{{ user_metric.color }}-600 h-3 rounded-full transition-all duration-1000 ease-out"
+                            style="width: {{ user_metric.recall }}%"
+                          ></div>
+                        </div>
+                      </div>
+                      {% endfor %}
+                    </div>
+
+                    <!-- F1 Score Section -->
+                    <div>
+                      <div class="flex justify-between items-center mb-4">
+                        <span class="text-lg font-semibold text-gray-800 dark:text-gray-200">F1 Score</span>
+                        <span class="text-sm text-gray-500 dark:text-gray-400">Average: 90.5%</span>
+                      </div>
+                      {% for user_metric in user_metrics %}
+                      <div class="space-y-3 mb-4">
+                        <div class="flex justify-between text-sm">
+                          <div class="flex items-center gap-2">
+                            <div class="w-4 h-4 bg-{{ user_metric.color }}-500 rounded-full"></div>
+                            <span class="font-medium">{{ user_metric.name }}</span>
+                          </div>
+                          <span class="font-semibold">{{ user_metric.f1_score|default:"90.1" }}%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
+                          <div
+                            class="bg-gradient-to-r from-{{ user_metric.color }}-400 to-{{ user_metric.color }}-600 h-3 rounded-full transition-all duration-1000 ease-out"
+                            style="width: {{ user_metric.f1_score|default:"90" }}%"
+                          ></div>
+                        </div>
+                      </div>
+                      {% endfor %}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>

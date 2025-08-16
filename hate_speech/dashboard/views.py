@@ -5,36 +5,71 @@ import requests
 from django.http import JsonResponse
 from django.contrib.auth.models import User
 from django.utils import timezone
+from .models import ScanHistory
 import datetime
 import requests
 
-# # Create your views here.
-# def dashboard(request):    
-#     return render(request, 'dashboard.html')
+# @login_required
+# def dashboard(request):
+#     context = {
+#         'user_name': request.user.username if request.user.is_authenticated else 'Guest',
+#         'user_analyses_this_month': 24,
+#         'total': 86,
+#         'hate': 19,
+#         'safe': 67,
+#     }
+#     return render(request, 'newwww.html', context)
 
 
 @login_required
 def dashboard(request):
+
+    today = timezone.now().date()
+    limit = 15
+
+    used = ScanHistory.objects.filter(
+        user=request.user,
+        created_at__date=today  # counts only today’s scans
+    ).count()
+
+    remaining = max(limit - used, 0)
+
+    percentage = int((remaining / limit) * 100) if limit > 0 else 0
+
+    credits = {
+        "limit": limit,
+        "used": used,
+        "remaining": remaining,
+        "percentage": percentage,
+    }
+
+     
+
+    user_type = 'free'  # Replace this with your real user type logic
     context = {
-        'user': request.user,
         'metrics': {
             'overall_accuracy': 91.7,
             'total_analyses': 1247,
             'false_positives': 3.2,
-            'active_users': 3,
+            'active_users': 3
         },
         'user_metrics': [
-            {'name': 'User A', 'initial': 'A', 'color': 'blue', 'color_from': 'blue-500', 'color_to': 'purple-600', 'accuracy': 95.2, 'analyses_count': 150, 'precision': 96.1, 'recall': 94.2},
-            {'name': 'User B', 'initial': 'B', 'color': 'green', 'color_from': 'green-500', 'color_to': 'teal-600', 'accuracy': 88.7, 'analyses_count': 120, 'precision': 87.3, 'recall': 89.9},
-            {'name': 'User C', 'initial': 'C', 'color': 'orange', 'color_from': 'orange-500', 'color_to': 'red-600', 'accuracy': 92.4, 'analyses_count': 180, 'precision': 91.8, 'recall': 93.1},
-        ],
-        'overview': {'total': 245, 'hate': 37, 'safe': 208},
-        'recent_analyses': [
-            {'text': 'You are an idiot', 'label': 'Hate', 'confidence': 85},
-            {'text': 'Nice weather today', 'label': 'Safe', 'confidence': 92},
-        ],
+            {'name': 'User 1', 'initial': 'U1', 'color': 'blue', 'color_from': 'blue-400', 'color_to': 'blue-600', 'analyses_count': 200, 'accuracy': 92.5, 'precision': 90.0, 'recall': 91.0, 'f1_score': 90.5},
+            {'name': 'User 2', 'initial': 'U2', 'color': 'green', 'color_from': 'green-400', 'color_to': 'green-600', 'analyses_count': 150, 'accuracy': 89.0, 'precision': 88.0, 'recall': 90.0, 'f1_score': 89.0},
+        ]
     }
-    return render(request, 'dashboard.html', context)
+
+    # credits  = {
+    #     "count": count,
+    #     "per_count": per_count,
+    # }
+
+    hate = ScanHistory.objects.filter(prediction="Hate Speech Detected").count()
+    safe = ScanHistory.objects.filter(prediction="No Hate Speech").count()
+    total = ScanHistory.objects.count()
+    history = ScanHistory.objects.filter(user=request.user).order_by("-created_at")[:3]
+
+    return render(request, 'dashboard.html',{**context, "history": history, "hate": hate, "safe": safe, "total": total,"user_type": user_type,"credits": credits})
 
 
 def api_call_text(text):
@@ -85,6 +120,13 @@ def detect(request):
             text = request.POST.get("text")
             result = api_call_text(text)
             result['probability_percent'] = result['probability'] * 100
+
+            ScanHistory.objects.create(
+                user=request.user,
+                input_text=text,
+                prediction=result.get('label'),
+                probability=result.get('probability', 0.0)
+            )
 
     return render(request, 'free.html', {"result": result, "message": message})
 

@@ -1,0 +1,938 @@
+{% extends "layout.html" %} {% load static %} 
+{% block title%}Dashboard{%endblock %}
+ {% block extra_head %}
+<link href="{% static 'css/dashboard.css' %}" rel="stylesheet" />
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+<script src="{% static 'js/dashboard_script.js' %}" defer></script>
+<style>
+  /* Enhanced animations and effects */
+  @keyframes pulse-glow {
+    0%,
+    100% {
+      box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4);
+    }
+    50% {
+      box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
+    }
+  }
+
+  @keyframes slide-in {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes number-count {
+    from {
+      transform: scale(0.8);
+      opacity: 0;
+    }
+    to {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+
+  .animate-pulse-glow {
+    animation: pulse-glow 2s infinite;
+  }
+
+  .animate-slide-in {
+    animation: slide-in 0.6s ease-out;
+  }
+
+  .animate-number-count {
+    animation: number-count 0.8s ease-out;
+  }
+
+  .metric-card {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+  }
+
+  .metric-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+      0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  }
+
+  .card-hover {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .card-hover:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.1);
+  }
+
+  .gradient-bg {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  }
+
+  .progress-bar {
+    background: linear-gradient(90deg, #4ade80, #22c55e, #16a34a);
+    transition: width 1s ease-in-out;
+  }
+
+  .tab-active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+  }
+
+  .analytics-tab:not(.tab-active):hover {
+    background: rgba(102, 126, 234, 0.1);
+  }
+
+  .glass-effect {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  /* Dark mode enhancements */
+  .dark .metric-card {
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .notification-dot {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    width: 8px;
+    height: 8px;
+    background: #ef4444;
+    border-radius: 50%;
+    animation: pulse-glow 2s infinite;
+  }
+
+  /* Enhanced scrollbar */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 3px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(102, 126, 234, 0.5);
+    border-radius: 3px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(102, 126, 234, 0.8);
+  }
+</style>
+{% endblock %} {% block content %}
+<div class="bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-100">
+  <div class="min-h-screen bg-transparent">
+    <div
+      class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 grid grid-cols-1 lg:grid-cols-[1fr_350px] gap-6"
+    >
+      <!-- Main column -->
+      <div class="space-y-6">
+        <!-- Top row: User info and action -->
+        <div class="flex items-start justify-between gap-4">
+          <div class="flex items-center gap-4">
+            <!-- User info -->
+            <div
+              class="bg-white dark:bg-gray-800 rounded-xl p-3 flex items-center gap-3 shadow-md card-hover"
+            >
+              <img
+                src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp"
+                alt="User Avatar"
+                class="w-12 h-12 rounded-full ring ring-blue-500"
+              />
+              <div>
+                <div
+                  class="text-sm font-semibold text-gray-800 dark:text-gray-100"
+                >
+                  John Doe
+                </div>
+                <div class="text-xs text-gray-500 dark:text-gray-300">
+                  Analyses this month: <span id="userAnalyses">50</span>
+                </div>
+                <div
+                  class="w-40 h-2 bg-gray-200 dark:bg-gray-700 rounded-full mt-2 overflow-hidden"
+                >
+                  <div
+                    id="analysesBar"
+                    class="h-2 progress-bar rounded-full"
+                    style="width: 50%"
+                  ></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-3">
+            <button
+              id="newAnalysisBtn"
+              class="px-4 py-2 rounded-full gradient-bg text-white text-sm hover:opacity-90 card-hover"
+            >
+              New Analysis
+            </button>
+          </div>
+        </div>
+
+        <!-- Main Panel -->
+        <div
+          id="centerPanel"
+          class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden animate-slide-up"
+        >
+          {% comment %}
+          <!-- Tab Navigation -->
+          <div class="border-b border-gray-200 dark:border-gray-700">
+            <nav class="flex space-x-8 px-6 py-4">
+              <button
+                class="analytics-tab tab-active px-4 py-2 rounded-lg text-sm font-medium transition-all"
+                data-tab="overview"
+              >
+                My Dashboard
+              </button>
+              <!-- Add more tabs if needed -->
+            </nav>
+          </div>
+
+          <!-- Tab Content -->
+          <div class="p-6">
+            <!-- Overview Tab -->
+            <div id="overview-content" class="tab-content animate-fade-in" style="display: block">
+              <!-- Existing content for overview tab -->
+              <div class="mb-6">
+                <h2
+                  class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2"
+                >
+                  My Dashboard
+                </h2>
+                <p class="text-gray-600 dark:text-gray-400">
+                  View your recent activity and performance metrics
+                </p>
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div class="metric-card rounded-xl p-4">
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <p class="text-sm text-gray-600 dark:text-gray-400">
+                        Total Analyses
+                      </p>
+                      <p
+                        class="text-2xl font-bold text-blue-600 dark:text-blue-400"
+                      >
+                        50
+                      </p>
+                    </div>
+                    <div
+                      class="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center"
+                    >
+                      <svg
+                        class="w-6 h-6 text-blue-600 dark:text-blue-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                        />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="metric-card rounded-xl p-4">
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <p class="text-sm text-gray-600 dark:text-gray-400">
+                        Hate Detected
+                      </p>
+                      <p
+                        class="text-2xl font-bold text-red-600 dark:text-red-400"
+                      >
+                        8
+                      </p>
+                    </div>
+                    <div
+                      class="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center"
+                    >
+                      <svg
+                        class="w-6 h-6 text-red-600 dark:text-red-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+                        />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="metric-card rounded-xl p-4">
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <p class="text-sm text-gray-600 dark:text-gray-400">
+                        Safe Content
+                      </p>
+                      <p
+                        class="text-2xl font-bold text-green-600 dark:text-green-400"
+                      >
+                        42
+                      </p>
+                    </div>
+                    <div
+                      class="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center"
+                    >
+                      <svg
+                        class="w-6 h-6 text-green-600 dark:text-green-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                        />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-6">
+                <h3 class="text-lg font-semibold mb-4">Recent Analyses</h3>
+                <ul id="recentList" class="space-y-2 max-h-64 overflow-auto">
+                  <li
+                    class="text-sm text-gray-700 dark:text-gray-200 cursor-pointer px-3 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700"
+                    data-content="You are amazing"
+                    data-label="Safe"
+                    data-confidence="95"
+                  >
+                    You are amazing
+                    <span class="text-xs text-green-500 ml-2">Safe</span>
+                  </li>
+                  <li
+                    class="text-sm text-gray-700 dark:text-gray-200 cursor-pointer px-3 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700"
+                    data-content="I hate this"
+                    data-label="Hate"
+                    data-confidence="85"
+                  >
+                    I hate this
+                    <span class="text-xs text-red-500 ml-2">Hate</span>
+                  </li>
+                </ul>
+              </div>
+              <!-- Rest of the overview content remains unchanged -->
+            </div>
+
+            <!-- Add more tab-content divs for additional tabs if needed -->
+          </div>
+          {% endcomment %}
+
+          <!-- Tab Navigation -->
+          <div class="border-b border-gray-200 dark:border-gray-700">
+            <nav class="flex space-x-8 px-6 py-4">
+              <button
+                class="analytics-tab tab-active px-4 py-2 rounded-lg text-sm font-medium transition-all"
+                data-tab="overview"
+              >
+                My Dashboard
+              </button>
+
+              <button
+                class="analytics-tab px-4 py-2 rounded-lg text-sm font-medium transition-all text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400"
+                data-tab="history"
+              >
+                My History
+              </button>
+
+              <button
+                class="analytics-tab px-4 py-2 rounded-lg text-sm font-medium transition-all text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400"
+                data-tab="stats"
+              >
+                My Stats
+              </button>
+            </nav>
+          </div>
+
+          <!-- Tab Content -->
+          <div class="p-6">
+            <!-- Overview Tab -->
+            <div id="overview-content" class="tab-content animate-fade-in" style="display: block">
+              <!-- Existing content for overview tab -->
+              <div class="mb-6">
+                <h2
+                  class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2"
+                >
+                  My Dashboard
+                </h2>
+                <p class="text-gray-600 dark:text-gray-400">
+                  View your recent activity and performance metrics
+                </p>
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div class="metric-card rounded-xl p-4">
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <p class="text-sm text-gray-600 dark:text-gray-400">
+                        Total Analyses
+                      </p>
+                      <p
+                        class="text-2xl font-bold text-blue-600 dark:text-blue-400"
+                      >
+                        50
+                      </p>
+                    </div>
+                    <div
+                      class="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center"
+                    >
+                      <svg
+                        class="w-6 h-6 text-blue-600 dark:text-blue-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                        />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="metric-card rounded-xl p-4">
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <p class="text-sm text-gray-600 dark:text-gray-400">
+                        Hate Detected
+                      </p>
+                      <p
+                        class="text-2xl font-bold text-red-600 dark:text-red-400"
+                      >
+                        8
+                      </p>
+                    </div>
+                    <div
+                      class="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center"
+                    >
+                      <svg
+                        class="w-6 h-6 text-red-600 dark:text-red-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+                        />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="metric-card rounded-xl p-4">
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <p class="text-sm text-gray-600 dark:text-gray-400">
+                        Safe Content
+                      </p>
+                      <p
+                        class="text-2xl font-bold text-green-600 dark:text-green-400"
+                      >
+                        42
+                      </p>
+                    </div>
+                    <div
+                      class="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center"
+                    >
+                      <svg
+                        class="w-6 h-6 text-green-600 dark:text-green-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                        />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-6">
+                <h3 class="text-lg font-semibold mb-4">Recent Analyses</h3>
+                <ul id="recentList" class="space-y-2 max-h-64 overflow-auto">
+                  <li
+                    class="text-sm text-gray-700 dark:text-gray-200 cursor-pointer px-3 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700"
+                    data-content="You are amazing"
+                    data-label="Safe"
+                    data-confidence="95"
+                  >
+                    You are amazing
+                    <span class="text-xs text-green-500 ml-2">Safe</span>
+                  </li>
+                  <li
+                    class="text-sm text-gray-700 dark:text-gray-200 cursor-pointer px-3 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700"
+                    data-content="I hate this"
+                    data-label="Hate"
+                    data-confidence="85"
+                  >
+                    I hate this
+                    <span class="text-xs text-red-500 ml-2">Hate</span>
+                  </li>
+                </ul>
+              </div>
+              <!-- Rest of the overview content remains unchanged -->
+            </div>
+
+            <!-- My History Tab -->
+            <div
+              id="history-content"
+              class="tab-content animate-fade-in"
+              style="display: none"
+            >
+              <div class="mb-6">
+                <h2
+                  class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2"
+                >
+                  My History
+                </h2>
+                <p class="text-gray-600 dark:text-gray-400">
+                  A full log of your past content analyses.
+                </p>
+              </div>
+              <div
+                class="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden"
+              >
+                <table
+                  class="min-w-full divide-y divide-gray-200 dark:divide-gray-700"
+                >
+                  <thead class="bg-gray-50 dark:bg-gray-700">
+                    <tr>
+                      <th
+                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+                      >
+                        Content
+                      </th>
+                      <th
+                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+                      >
+                        Result
+                      </th>
+                      <th
+                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+                      >
+                        Confidence
+                      </th>
+                      <th
+                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+                      >
+                        Date
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody
+                    class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700"
+                  >
+                    <tr
+                      class="hover:bg-gray-50 dark:hover:bg-gray-700 transition"
+                    >
+                      <td
+                        class="px-6 py-4 text-sm text-gray-800 dark:text-gray-200"
+                      >
+                        This is unacceptable!
+                      </td>
+                      <td class="px-6 py-4 text-sm">
+                        <span
+                          class="px-2 py-1 text-xs rounded-full bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300"
+                          >Hate</span
+                        >
+                      </td>
+                      <td
+                        class="px-6 py-4 text-sm text-gray-600 dark:text-gray-400"
+                      >
+                        89%
+                      </td>
+                      <td
+                        class="px-6 py-4 text-sm text-gray-500 dark:text-gray-400"
+                      >
+                        Today, 10:30 AM
+                      </td>
+                    </tr>
+                    <tr
+                      class="hover:bg-gray-50 dark:hover:bg-gray-700 transition"
+                    >
+                      <td
+                        class="px-6 py-4 text-sm text-gray-800 dark:text-gray-200"
+                      >
+                        Love this community!
+                      </td>
+                      <td class="px-6 py-4 text-sm">
+                        <span
+                          class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300"
+                          >Safe</span
+                        >
+                      </td>
+                      <td
+                        class="px-6 py-4 text-sm text-gray-600 dark:text-gray-400"
+                      >
+                        96%
+                      </td>
+                      <td
+                        class="px-6 py-4 text-sm text-gray-500 dark:text-gray-400"
+                      >
+                        Yesterday, 5:12 PM
+                      </td>
+                    </tr>
+                    <tr
+                      class="hover:bg-gray-50 dark:hover:bg-gray-700 transition"
+                    >
+                      <td
+                        class="px-6 py-4 text-sm text-gray-800 dark:text-gray-200"
+                      >
+                        Not cool at all.
+                      </td>
+                      <td class="px-6 py-4 text-sm">
+                        <span
+                          class="px-2 py-1 text-xs rounded-full bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300"
+                          >Hate</span
+                        >
+                      </td>
+                      <td
+                        class="px-6 py-4 text-sm text-gray-600 dark:text-gray-400"
+                      >
+                        76%
+                      </td>
+                      <td
+                        class="px-6 py-4 text-sm text-gray-500 dark:text-gray-400"
+                      >
+                        Oct 22, 2023
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- My Stats Tab -->
+            <div
+              id="stats-content"
+              class="tab-content animate-fade-in"
+              style="display: none"
+            >
+              <div class="mb-6">
+                <h2
+                  class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2"
+                >
+                  My Stats
+                </h2>
+                <p class="text-gray-600 dark:text-gray-400">
+                  Detailed statistics and trends over time.
+                </p>
+              </div>
+
+              <!-- Stat Cards -->
+              <div
+                class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8"
+              >
+                <div
+                  class="p-5 bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-700 dark:to-gray-900 rounded-xl shadow-sm border border-blue-100 dark:border-gray-600"
+                >
+                  <h3
+                    class="text-sm font-medium text-blue-700 dark:text-blue-300"
+                  >
+                    Total Analyses
+                  </h3>
+                  <p
+                    class="text-3xl font-bold text-blue-900 dark:text-blue-100 mt-2"
+                  >
+                    142
+                  </p>
+                </div>
+
+                <div
+                  class="p-5 bg-gradient-to-br from-red-50 to-pink-100 dark:from-red-900/30 dark:to-pink-900/20 rounded-xl shadow-sm border border-red-100 dark:border-red-800/30"
+                >
+                  <h3
+                    class="text-sm font-medium text-red-700 dark:text-red-300"
+                  >
+                    Hate Speech Rate
+                  </h3>
+                  <p
+                    class="text-3xl font-bold text-red-900 dark:text-red-100 mt-2"
+                  >
+                    12.7%
+                  </p>
+                </div>
+
+                <div
+                  class="p-5 bg-gradient-to-br from-green-50 to-emerald-100 dark:from-green-900/30 dark:to-emerald-900/20 rounded-xl shadow-sm border border-green-100 dark:border-green-800/30"
+                >
+                  <h3
+                    class="text-sm font-medium text-green-700 dark:text-green-300"
+                  >
+                    Safety Score
+                  </h3>
+                  <p
+                    class="text-3xl font-bold text-green-900 dark:text-green-100 mt-2"
+                  >
+                    87.3%
+                  </p>
+                </div>
+              </div>
+
+              <!-- Chart Placeholder -->
+              <div
+                class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700"
+              >
+                <h3 class="text-lg font-semibold mb-4">Weekly Trends</h3>
+                <div
+                  class="h-64 flex items-center justify-center bg-gray-100 dark:bg-gray-700 rounded-lg"
+                >
+                  <p class="text-gray-500 dark:text-gray-400">
+                    📊 Chart would go here (e.g., using Chart.js)
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Enhanced Right column (ChatGPT-style sidebar) -->
+      <aside class="space-y-6">
+        <!-- Enhanced Overview Panel -->
+        <div
+          class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg glass-effect animate-slide-in"
+        >
+          <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-4">
+              <button
+                class="px-4 py-2 text-sm rounded-lg tabLink tab-active bg-gradient-to-r from-blue-500 to-purple-600 text-white"
+              >
+                Overview
+              </button>
+            </div>
+            <div class="relative">
+              <button
+                class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              >
+                <svg
+                  class="w-4 h-4 text-gray-600 dark:text-gray-300"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M4 6h16M4 12h16M4 18h16"
+                  />
+                </svg>
+              </button>
+            </div>
+
+            <div id="searchPanel" class="space-y-3 hidden">
+              <input
+                id="quickSearchInput"
+                type="text"
+                placeholder="Analyze text..."
+                class="w-full rounded-md border-gray-200 dark:border-gray-700 px-3 py-2 bg-gray-50 dark:bg-gray-900"
+              />
+              <button
+                id="quickAnalyzeBtn"
+                class="w-full px-3 py-2 rounded-md gradient-bg text-white"
+              >
+                Analyze
+              </button>
+            </div>
+          </div>
+
+          <div id="overviewPanel" class="">
+            <div
+              class="text-sm text-gray-500 dark:text-gray-400 mb-4 font-medium"
+            >
+              Quick Stats
+            </div>
+            <div class="grid grid-cols-1 gap-4">
+              <div
+                class="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl"
+              >
+                <div class="flex items-center gap-2">
+                  <div class="w-2 h-2 bg-blue-500 rounded-full"></div>
+                  <span class="text-sm font-medium">Total</span>
+                </div>
+                <span
+                  id="sideTotal"
+                  class="text-lg font-bold text-blue-600 dark:text-blue-400"
+                  >{{ total|default:"273" }}</span
+                >
+              </div>
+
+              <div
+                class="flex justify-between items-center p-3 bg-red-50 dark:bg-red-900/20 rounded-xl"
+              >
+                <div class="flex items-center gap-2">
+                  <div class="w-2 h-2 bg-red-500 rounded-full"></div>
+                  <span class="text-sm font-medium">Hate</span>
+                </div>
+                <span id="sideHate" class="text-lg font-bold text-red-500"
+                  >{{ hate|default:"37" }}</span
+                >
+              </div>
+
+              <div
+                class="flex justify-between items-center p-3 bg-green-50 dark:bg-green-900/20 rounded-xl"
+              >
+                <div class="flex items-center gap-2">
+                  <div class="w-2 h-2 bg-green-500 rounded-full"></div>
+                  <span class="text-sm font-medium">Safe</span>
+                </div>
+                <span id="sideSafe" class="text-lg font-bold text-green-500"
+                  >{{ safe|default:"208" }}</span
+                >
+              </div>
+            </div>
+
+            <!-- Quick Action Buttons -->
+            <div class="mt-6 space-y-2">
+              <button
+                class="w-full px-4 py-2 bg-gradient-to-r from-green-500 to-blue-600 text-white rounded-lg text-sm font-medium hover:shadow-lg transition-all duration-300"
+              >
+                Generate Report
+              </button>
+              <button
+                class="w-full px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+              >
+                Export Data
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Enhanced Recent Analyses -->
+        <div
+          class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg glass-effect animate-slide-in"
+        >
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100">
+              Recent Analyses
+            </h3>
+            <div class="flex items-center gap-2">
+              <div
+                class="w-2 h-2 bg-green-400 rounded-full animate-pulse"
+              ></div>
+              <span class="text-xs text-gray-500 dark:text-gray-400">Live</span>
+            </div>
+          </div>
+
+          <ul
+            id="historyList"
+            class="space-y-3 max-h-80 overflow-auto custom-scrollbar"
+          >
+            {% for row in history %}
+            <li
+              class="group p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-300 card-hover"
+              data-content="{{ row.input_text }}"
+              data-label="{{ row.prediction }}"
+              data-confidence="{{ row.probability }}"
+            >
+              <div class="flex items-start justify-between gap-2">
+                <div class="flex-1 min-w-0">
+                  <p
+                    class="text-sm text-gray-700 dark:text-gray-200 truncate font-medium"
+                  >
+                    {{ row.input_text|truncatechars:35 }}
+                  </p>
+                  <div class="flex items-center gap-2 mt-2">
+                    <span
+                      class="text-xs {% if row.prediction == 'Hate Speech Detected' %}bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400{% else %}bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400{% endif %} px-2 py-1 rounded-full font-medium"
+                    >
+                      {{ row.prediction }}
+                    </span>
+                    <span class="text-xs text-gray-500 dark:text-gray-400">
+                      {{ row.probability|floatformat:2|default:"95" }}
+                      confidence
+                    </span>
+                  </div>
+                </div>
+                <div
+                  class="opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  <svg
+                    class="w-4 h-4 text-gray-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M9 5l7 7-7 7"
+                    />
+                  </svg>
+                </div>
+              </div>
+            </li>
+            {% empty %}
+            <li class="text-center py-8">
+              <svg
+                class="w-12 h-12 text-gray-400 mx-auto mb-3"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                />
+              </svg>
+              <p class="text-sm text-gray-600 dark:text-gray-400 font-medium">
+                No recent analyses
+              </p>
+              <p class="text-xs text-gray-500 dark:text-gray-500 mt-1">
+                Start analyzing to see results
+              </p>
+            </li>
+            {% endfor %}
+          </ul>
+        </div>
+      </aside>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

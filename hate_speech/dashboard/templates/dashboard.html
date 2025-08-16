@@ -1,8 +1,156 @@
-{% extends "layout.html" %} {% load static %} 
-{% block title%}Dashboard{%endblock %} {% block extra_head %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% extends "layout.html" %} {% load static %} {% block title%}Dashboard{%endblock %} {% block extra_head %}
 <link href="{% static 'css/dashboard.css' %}" rel="stylesheet" />
-<script src="{% static 'js/dashboard.js' %}" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+<script src="{% static 'js/dashboard_script.js' %}" defer></script>
+<style>
+  /* Enhanced animations and effects */
+  @keyframes pulse-glow {
+    0%,
+    100% {
+      box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4);
+    }
+    50% {
+      box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
+    }
+  }
+  @keyframes slide-in {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes number-count {
+    from {
+      transform: scale(0.8);
+      opacity: 0;
+    }
+    to {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+
+  .animate-pulse-glow {
+    animation: pulse-glow 2s infinite;
+  }
+
+  .animate-slide-in {
+    animation: slide-in 0.6s ease-out;
+  }
+
+  .animate-number-count {
+    animation: number-count 0.8s ease-out;
+  }
+
+  .metric-card {
+    background-color: var(--color-gray-100);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+  }
+
+  .metric-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+      0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  }
+
+  .card-hover {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .card-hover:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.1);
+  }
+
+  .gradient-bg {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  }
+
+  .progress-bar {
+    background: linear-gradient(90deg, #4ade80, #22c55e, #16a34a);
+    transition: width 1s ease-in-out;
+  }
+
+  .tab-active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+  }
+
+  .analytics-tab:not(.tab-active):hover {
+    background: rgba(102, 126, 234, 0.1);
+  }
+
+  .glass-effect {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  /* Dark mode */
+  .dark .glass-effect {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+
+  .glass-effect-chart {
+    background-color: var(--color-gray-100);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  /* Dark mode */
+  .dark .glass-effect-chart {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  /* Dark mode enhancements */
+  .dark .metric-card {
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .notification-dot {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    width: 8px;
+    height: 8px;
+    background: #ef4444;
+    border-radius: 50%;
+    animation: pulse-glow 2s infinite;
+  }
+
+  /* Enhanced scrollbar */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 3px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(102, 126, 234, 0.5);
+    border-radius: 3px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(102, 126, 234, 0.8);
+  }
+</style>
 {% endblock %} {% block content %}
 <div class="bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-100">
   <div class="min-h-screen bg-transparent">
@@ -11,129 +159,285 @@
     >
       <!-- Main column -->
       <div class="space-y-6">
-        <!-- Top row: small user+credits card and actions -->
-        <div class="flex items-start justify-between gap-4">
+        <!-- Enhanced Top row with notifications and quick actions -->
+        <div class="flex items-start justify-between gap-4 animate-slide-in">
           <div class="flex items-center gap-4">
-            <!-- User + credits -->
+            <!-- Enhanced User + credits card -->
             <div
-              class="bg-white dark:bg-gray-800 rounded-xl p-3 flex items-center gap-3 shadow-md card-hover"
+              class="bg-white dark:bg-gray-800 rounded-xl p-4 flex items-center gap-4 shadow-lg card-hover glass-effect"
             >
-              <img
-                src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp"
-                alt="User Avatar"
-                class="w-12 h-12 rounded-full ring ring-blue-500"
-              />
+              <div class="relative">
+                <img
+                  src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp"
+                  alt="User Avatar"
+                  class="w-14 h-14 rounded-full ring-2 ring-blue-500 ring-offset-2 dark:ring-offset-gray-800"
+                />
+                <div
+                  class="absolute -bottom-1 -right-1 w-5 h-5 bg-green-400 border-2 border-white dark:border-gray-800 rounded-full"
+                ></div>
+              </div>
               <div>
                 <div
-                  class="text-sm font-semibold text-gray-800 dark:text-gray-100"
+                  class="text-base font-bold text-gray-800 dark:text-gray-100 animate-number-count"
                 >
                   {{ user.get_full_name|default:user.username }}
                 </div>
-                <div class="text-xs text-gray-500 dark:text-gray-300">
+                <div
+                  class="text-sm text-gray-500 dark:text-gray-300 flex items-center gap-2"
+                >
+                  <svg
+                    class="w-4 h-4 text-yellow-500"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
+                    />
+                  </svg>
                   Free credits:
-                  <span id="freeCredits"
-                    >{{ user.profile.credits|default:12 }}</span
+                  <span id="freeCredits" class="font-semibold"
+                    >{{ credits.remaining|default:12 }}</span
                   >
                 </div>
                 <div
-                  class="w-40 h-2 bg-gray-200 dark:bg-gray-700 rounded-full mt-2 overflow-hidden"
+                  class="w-48 h-3 bg-gray-200 dark:bg-gray-700 rounded-full mt-2 overflow-hidden"
                 >
                   <div
                     id="creditsBar"
-                    class="h-2 progress-bar rounded-full"
-                    style="width:{{ user.profile.credits_percentage|default:60 }}%"
+                    class="h-3 progress-bar rounded-full transition-all duration-1000 ease-out"
+                    style="width:{{ credits.percentage|default:60 }}%"
                   ></div>
+                </div>
+                <div class="text-xs text-gray-400 mt-1">
+                  {{ credits.percentage|default:60 }}% remaining
+                </div>
+              </div>
+            </div>
+
+            <!-- Quick Stats Mini Cards -->
+            <div class="hidden md:flex gap-3">
+              <div
+                class="bg-green-50 dark:bg-green-900/20 rounded-lg p-3 card-hover"
+              >
+                <div
+                  class="text-xs text-green-600 dark:text-green-400 font-medium"
+                >
+                  Today
+                </div>
+                <div
+                  class="text-lg font-bold text-green-700 dark:text-green-300 animate-number-count"
+                >
+                  {{ daily_stats.today|default:"47" }}
+                </div>
+              </div>
+              <div
+                class="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3 card-hover"
+              >
+                <div
+                  class="text-xs text-blue-600 dark:text-blue-400 font-medium"
+                >
+                  Week
+                </div>
+                <div
+                  class="text-lg font-bold text-blue-700 dark:text-blue-300 animate-number-count"
+                >
+                  {{ daily_stats.week|default:"312" }}
                 </div>
               </div>
             </div>
           </div>
 
+          <!-- Enhanced Action buttons -->
           <div class="flex items-center gap-3">
-            <a
-              href=""
-              class="hidden sm:inline-block px-4 py-2 rounded-full bg-gray-100 dark:bg-gray-700 text-sm text-gray-800 dark:text-gray-100 hover:shadow card-hover"
-            >
-              View Reports
-            </a>
+            <div class="hidden sm:flex items-center gap-2">
+              <button
+                class="relative p-2 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors card-hover"
+              >
+                <svg
+                  class="w-5 h-5 text-gray-600 dark:text-gray-300"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M15 17h5l-5 5v-5z"
+                  />
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M9 17H4l5 5v-5z"
+                  />
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 12l8-8"
+                  />
+                </svg>
+                <div class="notification-dot"></div>
+              </button>
+
+              <a
+                href=""
+                class="px-4 py-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-sm text-gray-800 dark:text-gray-100 hover:shadow-lg card-hover transition-all duration-300"
+              >
+                <span class="flex items-center gap-2">
+                  <svg
+                    class="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                    />
+                  </svg>
+                  Reports
+                </span>
+              </a>
+            </div>
+
             <button
+              onclick='location.href="{% url "detect" %}"'
               id="newAnalysisBtn"
-              class="px-4 py-2 rounded-full gradient-bg text-white text-sm hover:opacity-90 card-hover"
+              class="px-6 py-3 rounded-lg gradient-bg text-white text-sm font-medium hover:opacity-90 card-hover animate-pulse-glow"
             >
-              New Analysis
+              <span class="flex items-center gap-2">
+                <svg
+                  class="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 4v16m8-8H4"
+                  />
+                </svg>
+                New Analysis
+              </span>
             </button>
           </div>
         </div>
 
-        <!-- Enhanced Center Panel with Performance Analytics -->
-        <div
-          id="centerPanel"
-          class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden animate-slide-up"
-        >
-          <!-- Tab Navigation -->
-          <div class="border-b border-gray-200 dark:border-gray-700">
-            <nav class="flex space-x-8 px-6 py-4">
+        <!-- Enhanced Center Panel with Real-time Updates -->
+        <div id="centerPanel" class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-animate-slide-in glass-effect">
+
+        <div class="border-b border-gray-200 rounded-2xl dark:border-gray-700 bg-gradient-to-r from-gray-100 to-white dark:from-gray-800 dark:to-gray-700">
+            <nav class="flex px-6 py-6 whitespace-nowrap overflow-x-auto
+              {% if user_type != 'pro' %} space-x-1 {% else %} justify-between {% endif %}">
+              
               <button
-                class="analytics-tab tab-active px-4 py-2 rounded-lg text-sm font-medium transition-all"
+                class="analytics-tab {% if user_type != 'pro' %}flex-1{% endif %} px-6 py-3 rounded-lg text-sm font-semibold transition-all duration-300 flex items-center gap-2 tab-active card-hover"
                 data-tab="overview"
               >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                </svg>
                 Performance Overview
               </button>
+
               <button
-                class="analytics-tab px-4 py-2 rounded-lg text-sm font-medium transition-all hover:bg-gray-100 dark:hover:bg-gray-700"
+                class="analytics-tab {% if user_type != 'pro' %}flex-1 opacity-50 cursor-not-allowed pointer-events-none{% endif %} px-6 py-3 rounded-lg text-sm font-semibold transition-all duration-300 flex items-center gap-2"
                 data-tab="accuracy"
               >
-                Accuracy Metrics
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                Accuracy Metrics{% if user_type != 'pro' %} 🔒{% endif %}
               </button>
+
               <button
-                class="analytics-tab px-4 py-2 rounded-lg text-sm font-medium transition-all hover:bg-gray-100 dark:hover:bg-gray-700"
+                class="analytics-tab {% if user_type != 'pro' %}flex-1 opacity-50 cursor-not-allowed pointer-events-none{% endif %} px-6 py-3 rounded-lg text-sm font-semibold transition-all duration-300 flex items-center gap-2"
                 data-tab="trends"
               >
-                Trend Analysis
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+                </svg>
+                Trend Analysis{% if user_type != 'pro' %} 🔒{% endif %}
               </button>
+
               <button
-                class="analytics-tab px-4 py-2 rounded-lg text-sm font-medium transition-all hover:bg-gray-100 dark:hover:bg-gray-700"
+                class="analytics-tab {% if user_type != 'pro' %}flex-1 opacity-50 cursor-not-allowed pointer-events-none{% endif %} px-6 py-3 rounded-lg text-sm font-semibold transition-all duration-300 flex items-center gap-2"
                 data-tab="comparison"
               >
-                User Comparison
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                </svg>
+                User Comparison{% if user_type != 'pro' %} 🔒{% endif %}
               </button>
+
             </nav>
           </div>
 
-          <!-- Tab Content -->
-          <div class="p-6">
+          
+
+          <!-- Tab Content with Enhanced Animations -->
+          <div class="p-8">
             <!-- Overview Tab -->
             <div id="overview-content" class="tab-content animate-fade-in">
-              <div class="mb-6">
+              <div class="mb-8">
                 <h2
-                  class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2"
+                  class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-3 animate-slide-in"
                 >
                   Performance Dashboard
                 </h2>
-                <p class="text-gray-600 dark:text-gray-400">
+                <p class="text-gray-600 dark:text-gray-400 text-lg">
                   Monitor user accuracy and detection performance across all
-                  analyses
+                  analyses with real-time insights
                 </p>
               </div>
 
-              <!-- Key Metrics Cards -->
-              <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                <div class="metric-card rounded-xl p-4">
-                  <div class="flex items-center justify-between">
+              <!-- Enhanced Key Metrics Cards with Animations -->
+              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="metric-card rounded-2xl p-6 card-hover animate-slide-in" style="animation-delay: 0.1s">
+                  <div class="flex items-center justify-between ">
                     <div>
-                      <p class="text-sm text-gray-600 dark:text-gray-400">
+                      <p
+                        class="text-sm text-gray-600 dark:text-gray-400 font-medium mb-1"
+                      >
                         Overall Accuracy
                       </p>
                       <p
-                        class="text-2xl font-bold text-green-600 dark:text-green-400"
+                        class="text-3xl font-bold text-green-600 dark:text-green-400 animate-number-count"
                       >
                         {{ metrics.overall_accuracy|default:"91.7" }}%
                       </p>
+                      <div class="flex items-center gap-1 mt-2">
+                        <svg
+                          class="w-4 h-4 text-green-500"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path
+                            fill-rule="evenodd"
+                            d="M3.293 9.707a1 1 0 010-1.414l6-6a1 1 0 011.414 0l6 6a1 1 0 01-1.414 1.414L11 5.414V17a1 1 0 11-2 0V5.414L4.707 9.707a1 1 0 01-1.414 0z"
+                            clip-rule="evenodd"
+                          />
+                        </svg>
+                        <span class="text-xs text-green-600 font-medium"
+                          >+2.3%</span
+                        >
+                      </div>
                     </div>
                     <div
-                      class="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center"
+                      class="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-2xl flex items-center justify-center"
                     >
                       <svg
-                        class="w-6 h-6 text-green-600 dark:text-green-400"
+                        class="w-8 h-8 text-green-600 dark:text-green-400"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -149,23 +453,44 @@
                   </div>
                 </div>
 
-                <div class="metric-card rounded-xl p-4">
+                <div
+                  class="metric-card rounded-2xl p-6 card-hover animate-slide-in"
+                  style="animation-delay: 0.2s"
+                >
                   <div class="flex items-center justify-between">
                     <div>
-                      <p class="text-sm text-gray-600 dark:text-gray-400">
+                      <p
+                        class="text-sm text-gray-600 dark:text-gray-400 font-medium mb-1"
+                      >
                         Total Analyses
                       </p>
                       <p
-                        class="text-2xl font-bold text-blue-600 dark:text-blue-400"
+                        class="text-3xl font-bold text-blue-600 dark:text-blue-400 animate-number-count"
                       >
                         {{ metrics.total_analyses|default:"1,247" }}
                       </p>
+                      <div class="flex items-center gap-1 mt-2">
+                        <svg
+                          class="w-4 h-4 text-blue-500"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path
+                            fill-rule="evenodd"
+                            d="M3.293 9.707a1 1 0 010-1.414l6-6a1 1 0 011.414 0l6 6a1 1 0 01-1.414 1.414L11 5.414V17a1 1 0 11-2 0V5.414L4.707 9.707a1 1 0 01-1.414 0z"
+                            clip-rule="evenodd"
+                          />
+                        </svg>
+                        <span class="text-xs text-blue-600 font-medium"
+                          >+156 today</span
+                        >
+                      </div>
                     </div>
                     <div
-                      class="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center"
+                      class="w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-2xl flex items-center justify-center"
                     >
                       <svg
-                        class="w-6 h-6 text-blue-600 dark:text-blue-400"
+                        class="w-8 h-8 text-blue-600 dark:text-blue-400"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -181,23 +506,44 @@
                   </div>
                 </div>
 
-                <div class="metric-card rounded-xl p-4">
+                <div
+                  class="metric-card rounded-2xl p-6 card-hover animate-slide-in"
+                  style="animation-delay: 0.3s"
+                >
                   <div class="flex items-center justify-between">
                     <div>
-                      <p class="text-sm text-gray-600 dark:text-gray-400">
+                      <p
+                        class="text-sm text-gray-600 dark:text-gray-400 font-medium mb-1"
+                      >
                         False Positives
                       </p>
                       <p
-                        class="text-2xl font-bold text-orange-600 dark:text-orange-400"
+                        class="text-3xl font-bold text-orange-600 dark:text-orange-400 animate-number-count"
                       >
-                        {{ metrics.false_positives|default:"3.2" }}%
+                        {{ metrics.positives|default:"3.2" }}%
                       </p>
+                      <div class="flex items-center gap-1 mt-2">
+                        <svg
+                          class="w-4 h-4 text-green-500"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path
+                            fill-rule="evenodd"
+                            d="M16.707 10.293a1 1 0 010 1.414l-6 6a1 1 0 01-1.414 0l-6-6a1 1 0 111.414-1.414L9 14.586V3a1 1 0 012 0v11.586l4.293-4.293a1 1 0 011.414 0z"
+                            clip-rule="evenodd"
+                          />
+                        </svg>
+                        <span class="text-xs text-green-600 font-medium"
+                          >-0.8%</span
+                        >
+                      </div>
                     </div>
                     <div
-                      class="w-12 h-12 bg-orange-100 dark:bg-orange-900/30 rounded-full flex items-center justify-center"
+                      class="w-16 h-16 bg-orange-100 dark:bg-orange-900/30 rounded-2xl flex items-center justify-center"
                     >
                       <svg
-                        class="w-6 h-6 text-orange-600 dark:text-orange-400"
+                        class="w-8 h-8 text-orange-600 dark:text-orange-400"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -213,23 +559,36 @@
                   </div>
                 </div>
 
-                <div class="metric-card rounded-xl p-4">
+                <div
+                  class="metric-card rounded-2xl p-6 card-hover animate-slide-in"
+                  style="animation-delay: 0.4s"
+                >
                   <div class="flex items-center justify-between">
                     <div>
-                      <p class="text-sm text-gray-600 dark:text-gray-400">
+                      <p
+                        class="text-sm text-gray-600 dark:text-gray-400 font-medium mb-1"
+                      >
                         Active Users
                       </p>
                       <p
-                        class="text-2xl font-bold text-purple-600 dark:text-purple-400"
+                        class="text-3xl font-bold text-purple-600 dark:text-purple-400 animate-number-count"
                       >
                         {{ metrics.active_users|default:"3" }}
                       </p>
+                      <div class="flex items-center gap-1 mt-2">
+                        <div
+                          class="w-2 h-2 bg-green-400 rounded-full animate-pulse"
+                        ></div>
+                        <span class="text-xs text-gray-600 font-medium"
+                          >All online</span
+                        >
+                      </div>
                     </div>
                     <div
-                      class="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center"
+                      class="w-16 h-16 bg-purple-100 dark:bg-purple-900/30 rounded-2xl flex items-center justify-center"
                     >
                       <svg
-                        class="w-6 h-6 text-purple-600 dark:text-purple-400"
+                        class="w-8 h-8 text-purple-600 dark:text-purple-400"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -246,167 +605,506 @@
                 </div>
               </div>
 
-              <!-- Overview Chart -->
-              <div class="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-6">
-                <h3 class="text-lg font-semibold mb-4">
-                  Daily Performance Overview
-                </h3>
-                <canvas id="overviewChart" class="w-full" height="300"></canvas>
+              <!-- Enhanced Overview Chart with Real-time Toggle -->
+              <div class="bg-gray-100 dark:bg-gray-800/50 rounded-2xl p-8 glass-effect-chart">
+
+                <div class="flex justify-between items-center mb-6">
+                  <h3
+                    class="text-xl font-bold text-gray-900 dark:text-gray-100"
+                  >
+                    Daily Performance Overview
+                  </h3>
+                  <div class="flex items-center gap-3">
+                    <div class="flex items-center gap-2 px-3 py-1 bg-green-100 dark:bg-green-900/30 rounded-full">
+                      <div
+                        class="w-2 h-2 bg-green-400 rounded-full animate-pulse"
+                      ></div>
+                      <span
+                        class="text-xs font-medium text-green-700 dark:text-green-300"
+                        >Live</span
+                      >
+                    </div>
+                    <select
+                      class="px-3 py-1 text-sm bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg"
+                    >
+                      <option>Last 7 days</option>
+                      <option>Last 30 days</option>
+                      <option>Last 3 months</option>
+                    </select>
+                  </div>
+                </div>
+
+                <canvas id="overviewChart" class="w-full" height="350"></canvas>
               </div>
             </div>
 
-            <!-- Accuracy Tab -->
+            <!-- Enhanced Accuracy Tab -->
             <div id="accuracy-content" class="tab-content hidden">
-              <div class="mb-6">
-                <h2
-                  class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2"
-                >
-                  User Accuracy Metrics
-                </h2>
-                <p class="text-gray-600 dark:text-gray-400">
-                  Detailed accuracy breakdown for each user
-                </p>
+              <div class="mb-8">
+                <div class="flex justify-between items-start">
+                  <div>
+                    <h2
+                      class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-3"
+                    >
+                      User Accuracy Metrics
+                    </h2>
+                    <p class="text-gray-600 dark:text-gray-400 text-lg">
+                      Detailed accuracy breakdown and performance insights for
+                      each user
+                    </p>
+                  </div>
+                  <button
+                    class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                  >
+                    Export Data
+                  </button>
+                </div>
               </div>
 
-              <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <!-- User Accuracy Chart -->
-                <div class="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-6">
-                  <h3 class="text-lg font-semibold mb-4">
-                    User Accuracy Comparison
-                  </h3>
+              <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Enhanced User Accuracy Chart -->
+                <div
+                  class="bg-gray-50 dark:bg-gray-800/50 rounded-2xl p-8 glass-effect"
+                >
+                  <div class="flex justify-between items-center mb-6">
+                    <h3
+                      class="text-xl font-bold text-gray-900 dark:text-gray-100"
+                    >
+                      User Accuracy Comparison
+                    </h3>
+                    <div class="flex gap-2">
+                      <button
+                        class="px-3 py-1 text-xs bg-blue-500 text-white rounded-md"
+                      >
+                        Chart
+                      </button>
+                      <button
+                        class="px-3 py-1 text-xs bg-gray-200 dark:bg-gray-700 rounded-md"
+                      >
+                        Table
+                      </button>
+                    </div>
+                  </div>
                   <canvas
                     id="accuracyChart"
                     class="w-full"
-                    height="300"
+                    height="350"
                   ></canvas>
                 </div>
 
-                <!-- User Performance Table -->
-                <div class="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-6">
-                  <h3 class="text-lg font-semibold mb-4">
-                    Detailed Performance
-                  </h3>
-                  <div class="space-y-4">
+                <!-- Enhanced User Performance Table -->
+                <div
+                  class="bg-gray-50 dark:bg-gray-800/50 rounded-2xl p-8 glass-effect"
+                >
+                  <div class="flex justify-between items-center mb-6">
+                    <h3
+                      class="text-xl font-bold text-gray-900 dark:text-gray-100"
+                    >
+                      Detailed Performance
+                    </h3>
+                    <button class="text-sm text-blue-500 hover:text-blue-600">
+                      View All
+                    </button>
+                  </div>
+                  <div
+                    class="space-y-6 custom-scrollbar max-h-96 overflow-y-auto"
+                  >
                     {% for user_metric in user_metrics %}
                     <div
-                      class="flex items-center justify-between p-4 bg-white dark:bg-gray-700 rounded-lg"
+                      class="flex items-center justify-between p-6 bg-white dark:bg-gray-700 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 card-hover"
                     >
-                      <div class="flex items-center space-x-3">
-                        <div
-                          class="w-10 h-10 bg-gradient-to-r from-{{ user_metric.color_from }} to-{{ user_metric.color_to }} rounded-full flex items-center justify-center"
-                        >
-                          <span class="text-white font-semibold text-sm"
-                            >{{ user_metric.initial }}</span
+                      <div class="flex items-center space-x-4">
+                        <div class="relative">
+                          <div
+                            class="w-12 h-12 bg-gradient-to-r from-{{ user_metric.color_from }} to-{{ user_metric.color_to }} rounded-full flex items-center justify-center shadow-lg"
                           >
+                            <span class="text-white font-bold text-sm"
+                              >{{ user_metric.initial }}</span
+                            >
+                          </div>
+                          <div
+                            class="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 border-2 border-white dark:border-gray-700 rounded-full"
+                          ></div>
                         </div>
                         <div>
-                          <p class="font-medium">{{ user_metric.name }}</p>
-                          <p class="text-sm text-gray-500">
+                          <p
+                            class="font-semibold text-gray-900 dark:text-gray-100"
+                          >
+                            {{ user_metric.name }}
+                          </p>
+                          <p class="text-sm text-gray-500 dark:text-gray-400">
                             {{ user_metric.analyses_count }} analyses
                           </p>
+                          <div class="flex items-center gap-2 mt-1">
+                            <span
+                              class="text-xs bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 px-2 py-1 rounded-full"
+                              >Active</span
+                            >
+                            <span class="text-xs text-gray-400"
+                              >Last seen: 2 min ago</span
+                            >
+                          </div>
                         </div>
                       </div>
                       <div class="text-right">
                         <p
-                          class="text-xl font-bold text-{{ user_metric.color }}-600"
+                          class="text-2xl font-bold text-{{ user_metric.color }}-600 dark:text-{{ user_metric.color }}-400"
                         >
                           {{ user_metric.accuracy }}%
                         </p>
                         <div
-                          class="w-20 h-2 bg-gray-200 rounded-full overflow-hidden"
+                          class="w-24 h-3 bg-gray-200 dark:bg-gray-600 rounded-full overflow-hidden mt-2"
                         >
                           <div
-                            class="h-full bg-{{ user_metric.color }}-500 rounded-full"
+                            class="h-full bg-{{ user_metric.color }}-500 rounded-full transition-all duration-1000 ease-out"
                             style="width: {{ user_metric.accuracy }}%"
                           ></div>
+                        </div>
+                        <div class="flex items-center justify-end gap-1 mt-2">
+                          <svg
+                            class="w-3 h-3 text-green-500"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                          >
+                            <path
+                              fill-rule="evenodd"
+                              d="M3.293 9.707a1 1 0 010-1.414l6-6a1 1 0 011.414 0l6 6a1 1 0 01-1.414 1.414L11 5.414V17a1 1 0 11-2 0V5.414L4.707 9.707a1 1 0 01-1.414 0z"
+                              clip-rule="evenodd"
+                            />
+                          </svg>
+                          <span class="text-xs text-green-600 font-medium"
+                            >+1.2%</span
+                          >
                         </div>
                       </div>
                     </div>
                     {% empty %}
-                    <p class="text-gray-600 dark:text-gray-400">
-                      No user metrics available.
-                    </p>
+                    <div class="text-center py-12">
+                      <svg
+                        class="w-16 h-16 text-gray-400 mx-auto mb-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
+                        />
+                      </svg>
+                      <p class="text-gray-600 dark:text-gray-400 font-medium">
+                        No user metrics available
+                      </p>
+                      <p class="text-gray-500 dark:text-gray-500 text-sm mt-1">
+                        Start analyzing to see performance data
+                      </p>
+                    </div>
                     {% endfor %}
                   </div>
                 </div>
               </div>
             </div>
 
-            <!-- Trends Tab -->
+            <!-- Enhanced Trends Tab -->
             <div id="trends-content" class="tab-content hidden">
-              <div class="mb-6">
-                <h2
-                  class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2"
-                >
-                  Performance Trends
-                </h2>
-                <p class="text-gray-600 dark:text-gray-400">
-                  Track accuracy improvements over time
-                </p>
+              <div class="mb-8">
+                <div class="flex justify-between items-start">
+                  <div>
+                    <h2
+                      class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-3"
+                    >
+                      Performance Trends
+                    </h2>
+                    <p class="text-gray-600 dark:text-gray-400 text-lg">
+                      Track accuracy improvements and patterns over time with
+                      predictive insights
+                    </p>
+                  </div>
+                  <div class="flex items-center gap-3">
+                    <div
+                      class="flex items-center gap-2 px-3 py-1 bg-blue-100 dark:bg-blue-900/30 rounded-full"
+                    >
+                      <svg
+                        class="w-4 h-4 text-blue-500"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M13 10V3L4 14h7v7l9-11h-7z"
+                        />
+                      </svg>
+                      <span
+                        class="text-xs font-medium text-blue-700 dark:text-blue-300"
+                        >Auto-refresh</span
+                      >
+                    </div>
+                  </div>
+                </div>
               </div>
 
-              <div class="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-6">
-                <div class="flex items-center justify-between mb-4">
-                  <h3 class="text-lg font-semibold">7-Day Accuracy Trend</h3>
-                  <div class="flex space-x-2">
+              <!-- Enhanced Trend Statistics Cards -->
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div
+                  class="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 rounded-2xl p-6 card-hover"
+                >
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <p
+                        class="text-green-700 dark:text-green-300 text-sm font-medium"
+                      >
+                        Weekly Improvement
+                      </p>
+                      <p
+                        class="text-3xl font-bold text-green-800 dark:text-green-200"
+                      >
+                        +4.7%
+                      </p>
+                      <p
+                        class="text-xs text-green-600 dark:text-green-400 mt-1"
+                      >
+                        vs last week
+                      </p>
+                    </div>
+                    <div
+                      class="w-12 h-12 bg-green-200 dark:bg-green-800/40 rounded-xl flex items-center justify-center"
+                    >
+                      <svg
+                        class="w-6 h-6 text-green-700 dark:text-green-300"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
+                        />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+
+                <div
+                  class="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-2xl p-6 card-hover"
+                >
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <p
+                        class="text-blue-700 dark:text-blue-300 text-sm font-medium"
+                      >
+                        Prediction Score
+                      </p>
+                      <p
+                        class="text-3xl font-bold text-blue-800 dark:text-blue-200"
+                      >
+                        94.2%
+                      </p>
+                      <p class="text-xs text-blue-600 dark:text-blue-400 mt-1">
+                        next week estimate
+                      </p>
+                    </div>
+                    <div
+                      class="w-12 h-12 bg-blue-200 dark:bg-blue-800/40 rounded-xl flex items-center justify-center"
+                    >
+                      <svg
+                        class="w-6 h-6 text-blue-700 dark:text-blue-300"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
+                        />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+
+                <div
+                  class="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 rounded-2xl p-6 card-hover"
+                >
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <p
+                        class="text-purple-700 dark:text-purple-300 text-sm font-medium"
+                      >
+                        Consistency Rate
+                      </p>
+                      <p
+                        class="text-3xl font-bold text-purple-800 dark:text-purple-200"
+                      >
+                        87.5%
+                      </p>
+                      <p
+                        class="text-xs text-purple-600 dark:text-purple-400 mt-1"
+                      >
+                        stable performance
+                      </p>
+                    </div>
+                    <div
+                      class="w-12 h-12 bg-purple-200 dark:bg-purple-800/40 rounded-xl flex items-center justify-center"
+                    >
+                      <svg
+                        class="w-6 h-6 text-purple-700 dark:text-purple-300"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                        />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div
+                class="bg-gray-50 dark:bg-gray-800/50 rounded-2xl p-8 glass-effect"
+              >
+                <div class="flex items-center justify-between mb-6">
+                  <h3
+                    class="text-xl font-bold text-gray-900 dark:text-gray-100"
+                  >
+                    Advanced Trend Analysis
+                  </h3>
+                  <div class="flex space-x-3">
                     <button
-                      class="px-3 py-1 text-sm bg-blue-500 text-white rounded-md"
+                      class="px-4 py-2 text-sm bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
                     >
                       7D
                     </button>
                     <button
-                      class="px-3 py-1 text-sm bg-gray-200 dark:bg-gray-700 rounded-md"
+                      class="px-4 py-2 text-sm bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
                     >
                       30D
                     </button>
                     <button
-                      class="px-3 py-1 text-sm bg-gray-200 dark:bg-gray-700 rounded-md"
+                      class="px-4 py-2 text-sm bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
                     >
                       90D
                     </button>
                   </div>
                 </div>
-                <canvas id="trendsChart" class="w-full" height="400"></canvas>
+                <canvas id="trendsChart" class="w-full" height="450"></canvas>
               </div>
             </div>
 
-            <!-- Comparison Tab -->
+            <!-- Enhanced Comparison Tab -->
             <div id="comparison-content" class="tab-content hidden">
-              <div class="mb-6">
-                <h2
-                  class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2"
-                >
-                  User Comparison
-                </h2>
-                <p class="text-gray-600 dark:text-gray-400">
-                  Compare performance metrics across all users
-                </p>
+              <div class="mb-8">
+                <div class="flex justify-between items-start">
+                  <div>
+                    <h2
+                      class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-3"
+                    >
+                      User Comparison
+                    </h2>
+                    <p class="text-gray-600 dark:text-gray-400 text-lg">
+                      Compare performance metrics and identify top performers
+                      across all users
+                    </p>
+                  </div>
+                  <div class="flex items-center gap-3">
+                    <select
+                      class="px-3 py-2 text-sm bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg"
+                    >
+                      <option>All Users</option>
+                      <option>Top Performers</option>
+                      <option>Recent Activity</option>
+                    </select>
+                  </div>
+                </div>
               </div>
 
-              <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <!-- Radar Chart -->
-                <div class="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-6">
-                  <h3 class="text-lg font-semibold mb-4">Performance Radar</h3>
-                  <canvas id="radarChart" class="w-full" height="300"></canvas>
+              <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Enhanced Radar Chart -->
+                <div
+                  class="bg-gray-50 dark:bg-gray-800/50 rounded-2xl p-8 glass-effect"
+                >
+                  <div class="flex justify-between items-center mb-6">
+                    <h3
+                      class="text-xl font-bold text-gray-900 dark:text-gray-100"
+                    >
+                      Performance Radar
+                    </h3>
+                    <div class="flex items-center gap-2">
+                      <div class="flex items-center gap-1">
+                        <div class="w-3 h-3 bg-blue-500 rounded-full"></div>
+                        <span class="text-xs text-gray-600 dark:text-gray-400"
+                          >User 1</span
+                        >
+                      </div>
+                      <div class="flex items-center gap-1">
+                        <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                        <span class="text-xs text-gray-600 dark:text-gray-400"
+                          >User 2</span
+                        >
+                      </div>
+                      <div class="flex items-center gap-1">
+                        <div class="w-3 h-3 bg-purple-500 rounded-full"></div>
+                        <span class="text-xs text-gray-600 dark:text-gray-400"
+                          >User 3</span
+                        >
+                      </div>
+                    </div>
+                  </div>
+                  <canvas id="radarChart" class="w-full" height="350"></canvas>
                 </div>
 
-                <!-- Detailed Metrics -->
-                <div class="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-6">
-                  <h3 class="text-lg font-semibold mb-4">Detailed Metrics</h3>
-                  <div class="space-y-6">
+                <!-- Enhanced Detailed Metrics -->
+                <div
+                  class="bg-gray-50 dark:bg-gray-800/50 rounded-2xl p-8 glass-effect"
+                >
+                  <h3
+                    class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-6"
+                  >
+                    Detailed Metrics
+                  </h3>
+                  <div class="space-y-8">
+                    <!-- Precision Section -->
                     <div>
-                      <div class="flex justify-between items-center mb-2">
-                        <span class="text-sm font-medium">Precision</span>
+                      <div class="flex justify-between items-center mb-4">
+                        <span
+                          class="text-lg font-semibold text-gray-800 dark:text-gray-200"
+                          >Precision</span
+                        >
+                        <span class="text-sm text-gray-500 dark:text-gray-400"
+                          >Average: 89.3%</span
+                        >
                       </div>
                       {% for user_metric in user_metrics %}
-                      <div class="space-y-2">
+                      <div class="space-y-3 mb-4">
                         <div class="flex justify-between text-sm">
-                          <span>{{ user_metric.name }}</span
-                          ><span>{{ user_metric.precision }}%</span>
+                          <div class="flex items-center gap-2">
+                            <div
+                              class="w-4 h-4 bg-{{ user_metric.color }}-500 rounded-full"
+                            ></div>
+                            <span class="font-medium"
+                              >{{ user_metric.name }}</span
+                            >
+                          </div>
+                          <span class="font-semibold"
+                            >{{ user_metric.precision }}%</span
+                          >
                         </div>
-                        <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div
+                          class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3"
+                        >
                           <div
-                            class="bg-{{ user_metric.color }}-500 h-2 rounded-full"
+                            class="bg-gradient-to-r from-{{ user_metric.color }}-400 to-{{ user_metric.color }}-600 h-3 rounded-full transition-all duration-1000 ease-out"
                             style="width: {{ user_metric.precision }}%"
                           ></div>
                         </div>
@@ -414,25 +1112,81 @@
                       {% endfor %}
                     </div>
 
+                    <!-- Recall Section -->
                     <div>
-                      <div class="flex justify-between items-center mb-2">
-                        <span class="text-sm font-medium">Recall</span>
+                      <div class="flex justify-between items-center mb-4">
+                        <span
+                          class="text-lg font-semibold text-gray-800 dark:text-gray-200"
+                          >Recall</span
+                        >
+                        <span class="text-sm text-gray-500 dark:text-gray-400"
+                          >Average: 91.7%</span
+                        >
                       </div>
                       {% for user_metric in user_metrics %}
-                      <div class="space-y-2">
+                      <div class="space-y-3 mb-4">
                         <div class="flex justify-between text-sm">
-                          <span>{{ user_metric.name }}</span
-                          ><span>{{ user_metric.recall }}%</span>
+                          <div class="flex items-center gap-2">
+                            <div
+                              class="w-4 h-4 bg-{{ user_metric.color }}-500 rounded-full"
+                            ></div>
+                            <span class="font-medium"
+                              >{{ user_metric.name }}</span
+                            >
+                          </div>
+                          <span class="font-semibold"
+                            >{{ user_metric.recall }}%</span
+                          >
                         </div>
-                        <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div
+                          class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3"
+                        >
                           <div
-                            class="bg-{{ user_metric.color }}-500 h-2 rounded-full"
+                            class="bg-gradient-to-r from-{{ user_metric.color }}-400 to-{{ user_metric.color }}-600 h-3 rounded-full transition-all duration-1000 ease-out"
                             style="width: {{ user_metric.recall }}%"
                           ></div>
                         </div>
                       </div>
                       {% endfor %}
                     </div>
+
+                    <!-- F1 Score Section -->
+                    <div>
+                      <div class="flex justify-between items-center mb-4">
+                        <span
+                          class="text-lg font-semibold text-gray-800 dark:text-gray-200"
+                          >F1 Score</span
+                        >
+                        <span class="text-sm text-gray-500 dark:text-gray-400"
+                          >Average: 90.5%</span
+                        >
+                      </div>
+                      {% for user_metric in user_metrics %}
+                      <div class="space-y-3 mb-4">
+                        <div class="flex justify-between text-sm">
+                          <div class="flex items-center gap-2">
+                            <div
+                              class="w-4 h-4 bg-{{ user_metric.color }}-500 rounded-full"
+                            ></div>
+                            <span class="font-medium"
+                              >{{ user_metric.name }}</span
+                            >
+                          </div>
+                          <span class="font-semibold"
+                            >{{ user_metric.f1_score|default:"90.1" }}%</span
+                          >
+                        </div>
+                        <div
+                          class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3"
+                        >
+                          <div class="bg-gradient-to-r from-{{ user_metric.color
+                          }}-400 to-{{ user_metric.color }}-600 h-3 rounded-full
+                          transition-all duration-1000 ease-out" style="width:
+                          {{ user_metric.f1_score|default:"90" }}%" >
+                        </div>
+                      </div>
+                    </div>
+                    {% endfor %}
                   </div>
                 </div>
               </div>
@@ -440,85 +1194,163 @@
           </div>
         </div>
       </div>
-
-      <!-- Right column (ChatGPT-style sidebar) -->
-      <aside class="space-y-4">
-        <div class="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-md">
-          <!-- small header with tabs -->
-          <div class="flex items-center justify-between mb-3">
-            <div class="flex items-center gap-3">
-              <button
-                class="px-3 py-1 text-sm rounded-md tabLink tab-active"
-                data-target="overview"
-              >
-                Overview
-              </button>
-
-            </div>
-            {% comment %} <div class="text-xs text-gray-400">Menu</div> {% endcomment %}
-          </div>
-
-
-
-          <!-- Overview summary -->
-          <div id="overviewPanel" class="">
-            <div class="text-xs text-gray-500 dark:text-gray-400 mb-2">
-              Overview
-            </div>
-            <div class="grid grid-cols-1 gap-2">
-              <div class="text-sm flex justify-between">
-                <span>Total</span
-                ><span id="sideTotal">{{ overview.total|default:"273" }}</span>
-              </div>
-              <div class="text-sm flex justify-between">
-                <span>Hate</span
-                ><span id="sideHate" class="text-red-500"
-                  >{{ overview.hate|default:"37" }}</span
-                >
-              </div>
-              <div class="text-sm flex justify-between">
-                <span>Safe</span
-                ><span id="sideSafe" class="text-green-500"
-                  >{{ overview.safe|default:"208" }}</span
-                >
-              </div>
-            </div>
-          </div>
-
-          <hr class="my-3 border-gray-200 dark:border-gray-700" />
-
-          
-        </div>
-
-        <!-- History / searches -->
-        <div class="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-md">
-          <div class="flex items-center justify-between mb-3">
-            <h3 class="text-sm font-semibold">Recent Analyses</h3>
-          </div>
-
-          <ul id="historyList" class="space-y-2 max-h-64 overflow-auto">
-            {% for analysis in recent_analyses %}
-            <li
-              class="text-sm text-gray-700 dark:text-gray-200 cursor-pointer px-3 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700"
-              data-content="{{ analysis.text }}"
-              data-label="{{ analysis.label }}"
-              data-confidence="{{ analysis.confidence }}"
-            >
-              {{ analysis.text|truncatechars:30 }}
-              <span
-                class="text-xs {% if analysis.label == 'Hate' %}text-red-500{% else %}text-green-500{% endif %} ml-2"
-                >{{ analysis.label }}</span
-              >
-            </li>
-            {% empty %}
-            <li class="text-sm text-gray-700 dark:text-gray-200">
-              No recent analyses.
-            </li>
-            {% endfor %}
-          </ul>
-        </div>
-      </aside>
     </div>
+
+    <!-- Enhanced Right column (ChatGPT-style sidebar) -->
+    <aside class="space-y-6">
+      <!-- Enhanced Overview Panel -->
+      <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg glass-effect animate-slide-in">
+        <div id="overviewPanel" class="">
+          <div class="text-sm text-gray-500 dark:text-gray-400 mb-4 font-medium">
+            Quick Stats
+          </div>
+          <div class="grid grid-cols-1 gap-4">
+            <div
+              class="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl"
+            >
+              <div class="flex items-center gap-2">
+                <div class="w-2 h-2 bg-blue-500 rounded-full"></div>
+                <span class="text-sm font-medium">Total</span>
+              </div>
+              <span
+                id="sideTotal"
+                class="text-lg font-bold text-blue-600 dark:text-blue-400"
+                >{{ total|default:"273" }}</span
+              >
+            </div>
+
+            <div
+              class="flex justify-between items-center p-3 bg-red-50 dark:bg-red-900/20 rounded-xl"
+            >
+              <div class="flex items-center gap-2">
+                <div class="w-2 h-2 bg-red-500 rounded-full"></div>
+                <span class="text-sm font-medium">Hate</span>
+              </div>
+              <span id="sideHate" class="text-lg font-bold text-red-500"
+                >{{ hate|default:"37" }}</span
+              >
+            </div>
+
+            <div
+              class="flex justify-between items-center p-3 bg-green-50 dark:bg-green-900/20 rounded-xl"
+            >
+              <div class="flex items-center gap-2">
+                <div class="w-2 h-2 bg-green-500 rounded-full"></div>
+                <span class="text-sm font-medium">Safe</span>
+              </div>
+              <span id="sideSafe" class="text-lg font-bold text-green-500"
+                >{{ safe|default:"208" }}</span
+              >
+            </div>
+          </div>
+
+          <!-- Quick Action Buttons -->
+          <div class="mt-6 space-y-2">
+            <button
+              class="w-full px-4 py-2 bg-gradient-to-r from-green-500 to-blue-600 text-white rounded-lg text-sm font-medium hover:shadow-lg transition-all duration-300"
+            >
+              Generate Report
+            </button>
+            <button
+              class="w-full px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+            >
+              Export Data
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Enhanced Recent Analyses -->
+      <div
+        class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg glass-effect animate-slide-in"
+      >
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100">
+            Recent Analyses
+          </h3>
+          <div class="flex items-center gap-2">
+            <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+            <span class="text-xs text-gray-500 dark:text-gray-400">Live</span>
+          </div>
+        </div>
+
+        <ul id="historyList" class="space-y-3 max-h-80 overflow-auto custom-scrollbar">
+          {% for row in history %}
+          <li
+            class="group p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-300 card-hover"
+            data-content="{{ row.input_text }}"
+            data-label="{{ row.prediction }}"
+            data-confidence="{{ row.probability }}"
+          >
+            <div class="flex items-start justify-between gap-2">
+              <div class="flex-1 min-w-0">
+                <p
+                  class="text-sm text-gray-700 dark:text-gray-200 truncate font-medium"
+                >
+                  {{ row.input_text|truncatechars:35 }}
+                </p>
+                <div class="flex items-center gap-2 mt-2">
+                  <span
+                    class="text-xs {% if row.prediction == 'Hate Speech Detected' %}bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400{% else %}bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400{% endif %} px-2 py-1 rounded-full font-medium"
+                  >
+                    {{ row.prediction }}
+                  </span>
+                  <span class="text-xs text-gray-500 dark:text-gray-400">
+                    {{ row.probability|floatformat:2|default:"95" }} confidence
+                  </span>
+                </div>
+              </div>
+              <div class="opacity-0 group-hover:opacity-100 transition-opacity">
+                <svg
+                  class="w-4 h-4 text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M9 5l7 7-7 7"
+                  />
+                </svg>
+              </div>
+            </div>
+          </li>
+          
+          {% empty %}
+          <li class="text-center py-8">
+            <svg
+              class="w-12 h-12 text-gray-400 mx-auto mb-3"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+              />
+            </svg>
+            <p class="text-sm text-gray-600 dark:text-gray-400 font-medium">
+              No recent analyses
+            </p>
+            <p class="text-xs text-gray-500 dark:text-gray-500 mt-1">
+              Start analyzing to see results
+            </p>
+          </li>
+          {% endfor %}
+        </ul>
+        <div class="text-center mt-5">
+          <a href="{% url 'pricing' %}" 
+            class="inline-block px-4 py-2 bg-gradient-to-r from-green-500 to-blue-600 text-white rounded-lg text-sm font-medium hover:scale-105 hover:shadow-lg transition-all duration-300">
+            Upgrade for more
+          </a>
+        </div>
+      </div>
+    </aside>
   </div>
 </div>
+
 {% endblock %}

@@ -1,0 +1,809 @@
+
+{% extends "layout.html" %}
+{% load static %}
+    <title>{% block title %}Dashboard{% endblock %}</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+    
+    <!-- Custom Styles -->
+    <style>
+        /* Enhanced animations and effects */
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4); }
+            50% { box-shadow: 0 0 0 10px rgba(59, 130, 246, 0); }
+        }
+        
+        @keyframes slide-in {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes slide-up {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes fade-in {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes number-count {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        
+        .animate-pulse-glow {
+            animation: pulse-glow 2s infinite;
+        }
+        
+        .animate-slide-in {
+            animation: slide-in 0.6s ease-out;
+        }
+        
+        .animate-slide-up {
+            animation: slide-up 0.6s ease-out;
+        }
+        
+        .animate-fade-in {
+            animation: fade-in 0.6s ease-out;
+        }
+        
+        .animate-number-count {
+            animation: number-count 0.8s ease-out;
+        }
+        
+        .metric-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .metric-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        
+        .card-hover {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .card-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .progress-bar {
+            background: linear-gradient(90deg, #4ade80, #22c55e, #16a34a);
+            transition: width 1s ease-in-out;
+        }
+        
+        .tab-active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white !important;
+        }
+        
+        .analytics-tab:not(.tab-active):hover {
+            background: rgba(102, 126, 234, 0.1);
+        }
+        
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .dark .metric-card {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .notification-dot {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            width: 8px;
+            height: 8px;
+            background: #ef4444;
+            border-radius: 50%;
+            animation: pulse-glow 2s infinite;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 3px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(102, 126, 234, 0.5);
+            border-radius: 3px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: rgba(102, 126, 234, 0.8);
+        }
+
+        /* Navigation Styles */
+        .navbar {
+            background: rgba(30, 41, 59, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-link {
+            color: #cbd5e1;
+            transition: all 0.3s ease;
+        }
+
+        .nav-link:hover {
+            color: #667eea;
+        }
+
+        .search-input {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        .search-input::placeholder {
+            color: #94a3b8;
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-white">
+    <!-- Navigation Header -->
+    <nav class="navbar fixed top-0 left-0 right-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo -->
+                <div class="flex items-center">
+                    <h1 class="text-2xl font-bold text-blue-400">Hate Speech</h1>
+                </div>
+
+                <!-- Navigation Links -->
+                <div class="hidden md:flex space-x-8">
+                    <a href="#" class="nav-link">Home</a>
+                    <a href="#" class="nav-link">Pricing</a>
+                    <a href="#" class="nav-link">About Us</a>
+                </div>
+
+                <!-- Right side -->
+                <div class="flex items-center space-x-4">
+                    <!-- Search -->
+                    <input type="text" placeholder="Search..." class="search-input px-3 py-1 rounded-lg text-sm w-48">
+                    
+                    <!-- Dark mode toggle -->
+                    <button class="p-2 rounded-lg hover:bg-gray-700 transition-colors">
+                        🌙
+                    </button>
+                    
+                    <!-- User profile -->
+                    <div class="flex items-center space-x-2">
+                        <img src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp" 
+                             alt="User Avatar" 
+                             class="w-8 h-8 rounded-full ring-2 ring-blue-500">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="pt-16"> <!-- Add padding-top for fixed navbar -->
+        {% block content %}
+        <!-- Force Dummy Data -->
+        {% with total=86 hate=19 safe=67 user_name="Alex Morgan" user_analyses_this_month=24 %}
+
+        <div class="bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-100">
+            <div class="min-h-screen bg-transparent">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 grid grid-cols-1 lg:grid-cols-[1fr_350px] gap-6">
+                    
+                    <!-- Main column -->
+                    <div class="space-y-6">
+                        <!-- Top row: User info and action -->
+                        <div class="flex items-start justify-between gap-4">
+                            <div class="flex items-center gap-4">
+                                <!-- User info -->
+                                <div class="bg-white dark:bg-gray-800 rounded-xl p-3 flex items-center gap-3 shadow-md card-hover">
+                                    <img src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp" alt="User Avatar" class="w-12 h-12 rounded-full ring ring-blue-500">
+                                    <div>
+                                        <div class="text-sm font-semibold text-gray-800 dark:text-gray-100">{{ user_name }}</div>
+                                        <div class="text-xs text-gray-500 dark:text-gray-300">Analyses this month: <span id="userAnalyses">{{ user_analyses_this_month }}</span></div>
+                                        <div class="w-40 h-2 bg-gray-200 dark:bg-gray-700 rounded-full mt-2 overflow-hidden">
+                                            <div id="analysesBar" class="h-2 progress-bar rounded-full" style="width:{{ user_analyses_this_month }}%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center gap-3">
+                                <button id="newAnalysisBtn" class="px-4 py-2 rounded-full gradient-bg text-white text-sm hover:opacity-90 card-hover">New Analysis</button>
+                            </div>
+                        </div>
+
+                        <!-- Main Panel -->
+                        <div id="centerPanel" class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden animate-slide-up">
+                            <!-- Tab Navigation -->
+                            <div class="border-b border-gray-200 dark:border-gray-700">
+                                <nav class="flex space-x-8 px-6 py-4">
+                                    <button class="analytics-tab tab-active px-4 py-2 rounded-lg text-sm font-medium transition-all" data-tab="overview">My Dashboard</button>
+                                    <button class="analytics-tab px-4 py-2 rounded-lg text-sm font-medium transition-all hover:bg-gray-100 dark:hover:bg-gray-700" data-tab="history">Search History</button>
+                                    <button class="analytics-tab px-4 py-2 rounded-lg text-sm font-medium transition-all hover:bg-gray-100 dark:hover:bg-gray-700" data-tab="stats">My Stats</button>
+                                </nav>
+                            </div>
+
+                            <!-- Tab Content -->
+                            <div class="p-6">
+                                <!-- Overview Tab -->
+                                <div id="overview-content" class="tab-content animate-fade-in">
+                                    <div class="mb-6">
+                                        <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">My Dashboard</h2>
+                                        <p class="text-gray-600 dark:text-gray-400">View your recent activity and performance metrics</p>
+                                    </div>
+
+                                    <!-- Key Metrics Cards -->
+                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                                        <div class="metric-card rounded-xl p-4">
+                                            <div class="flex items-center justify-between">
+                                                <div>
+                                                    <p class="text-sm text-gray-600 dark:text-gray-400">Total Analyses</p>
+                                                    <p class="text-2xl font-bold text-blue-600 dark:text-blue-400">{{ total }}</p>
+                                                </div>
+                                                <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
+                                                    <svg class="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                                                    </svg>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="metric-card rounded-xl p-4">
+                                            <div class="flex items-center justify-between">
+                                                <div>
+                                                    <p class="text-sm text-gray-600 dark:text-gray-400">Hate Detected</p>
+                                                    <p class="text-2xl font-bold text-red-600 dark:text-red-400">{{ hate }}</p>
+                                                </div>
+                                                <div class="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center">
+                                                    <svg class="w-6 h-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                                                    </svg>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="metric-card rounded-xl p-4">
+                                            <div class="flex items-center justify-between">
+                                                <div>
+                                                    <p class="text-sm text-gray-600 dark:text-gray-400">Safe Content</p>
+                                                    <p class="text-2xl font-bold text-green-600 dark:text-green-400">{{ safe }}</p>
+                                                </div>
+                                                <div class="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
+                                                    <svg class="w-6 h-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                                    </svg>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Recent Analyses -->
+                                    <div class="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-6">
+                                        <h3 class="text-lg font-semibold mb-4">Recent Analyses</h3>
+                                        <ul id="recentList" class="space-y-2 max-h-64 overflow-auto custom-scrollbar">
+                                            <li class="text-sm text-gray-700 dark:text-gray-200 cursor-pointer px-3 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors" data-content="You are worthless" data-label="Hate Speech Detected" data-confidence="94">You are worthless <span class="text-xs text-red-500 ml-2">Hate</span></li>
+                                            <li class="text-sm text-gray-700 dark:text-gray-200 cursor-pointer px-3 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors" data-content="Great job today!" data-label="No Hate Speech" data-confidence="98">Great job today! <span class="text-xs text-green-500 ml-2">Safe</span></li>
+                                            <li class="text-sm text-gray-700 dark:text-gray-200 cursor-pointer px-3 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors" data-content="I hate people like you" data-label="Hate Speech Detected" data-confidence="91">I hate people like you <span class="text-xs text-red-500 ml-2">Hate</span></li>
+                                            <li class="text-sm text-gray-700 dark:text-gray-200 cursor-pointer px-3 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors" data-content="We're all in this together" data-label="No Hate Speech" data-confidence="96">We're all in this together <span class="text-xs text-green-500 ml-2">Safe</span></li>
+                                            <li class="text-sm text-gray-700 dark:text-gray-200 cursor-pointer px-3 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors" data-content="You should disappear" data-label="Hate Speech Detected" data-confidence="89">You should disappear <span class="text-xs text-red-500 ml-2">Hate</span></li>
+                                        </ul>
+                                    </div>
+                                </div>
+
+                                <!-- History Tab -->
+                                <div id="history-content" class="tab-content hidden">
+                                    <div class="mb-6">
+                                        <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">Search History</h2>
+                                        <p class="text-gray-600 dark:text-gray-400">View all your past analyses</p>
+                                    </div>
+                                    <div class="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-6">
+                                        <div class="flex items-center justify-between mb-4">
+                                            <h3 class="text-lg font-semibold">All Analyses ({{ total }})</h3>
+                                            <button id="clearHistory" class="text-xs text-gray-400 hover:text-gray-600 transition-colors">Clear History</button>
+                                        </div>
+                                        <ul id="historyList" class="space-y-2 max-h-96 overflow-auto custom-scrollbar">
+                                            <li class="text-sm text-gray-700 dark:text-gray-200 cursor-pointer px-3 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors" data-content="You are worthless" data-label="Hate Speech Detected" data-confidence="94">You are worthless <span class="text-xs text-red-500 ml-2">Hate</span> <span class="text-xs text-gray-400 ml-2">Oct 4, 2023</span></li>
+                                            <li class="text-sm text-gray-700 dark:text-gray-200 cursor-pointer px-3 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors" data-content="Great job today!" data-label="No Hate Speech" data-confidence="98">Great job today! <span class="text-xs text-green-500 ml-2">Safe</span> <span class="text-xs text-gray-400 ml-2">Oct 3, 2023</span></li>
+                                            <li class="text-sm text-gray-700 dark:text-gray-200 cursor-pointer px-3 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors" data-content="I hate people like you" data-label="Hate Speech Detected" data-confidence="91">I hate people like you <span class="text-xs text-red-500 ml-2">Hate</span> <span class="text-xs text-gray-400 ml-2">Oct 2, 2023</span></li>
+                                            <li class="text-sm text-gray-700 dark:text-gray-200 cursor-pointer px-3 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors" data-content="We're all in this together" data-label="No Hate Speech" data-confidence="96">We're all in this together <span class="text-xs text-green-500 ml-2">Safe</span> <span class="text-xs text-gray-400 ml-2">Oct 1, 2023</span></li>
+                                        </ul>
+                                    </div>
+                                </div>
+
+                                <!-- Stats Tab -->
+                                <div id="stats-content" class="tab-content hidden">
+                                    <div class="mb-6">
+                                        <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">My Stats</h2>
+                                        <p class="text-gray-600 dark:text-gray-400">Track your analysis performance over time</p>
+                                    </div>
+                                    <div class="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-6">
+                                        <h3 class="text-lg font-semibold mb-4">Analysis Trend</h3>
+                                        <canvas id="statsChart" class="w-full" height="300"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right column (Sidebar) -->
+                    <aside class="space-y-6">
+                        <!-- Quick Search Panel -->
+                        <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg glass-effect animate-slide-in">
+                            <div class="mb-4">
+                                <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100">Quick Analysis</h3>
+                            </div>
+                            <div id="searchPanel" class="space-y-3">
+                                <input id="quickSearchInput" type="text" placeholder="Analyze text..." class="w-full rounded-md border-gray-200 dark:border-gray-700 px-3 py-2 bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-200" />
+                                <button id="quickAnalyzeBtn" class="w-full px-3 py-2 rounded-md gradient-bg text-white hover:opacity-90 transition-opacity">Analyze</button>
+                            </div>
+                        </div>
+
+                        <!-- Overview Panel -->
+                        <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg glass-effect animate-slide-in">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100">Quick Stats</h3>
+                                <div class="flex items-center gap-2">
+                                    <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                                    <span class="text-xs text-gray-500 dark:text-gray-400">Live</span>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 gap-4">
+                                <div class="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-2 h-2 bg-blue-500 rounded-full"></div>
+                                        <span class="text-sm font-medium">Total</span>
+                                    </div>
+                                    <span id="sideTotal" class="text-lg font-bold text-blue-600 dark:text-blue-400">{{ total }}</span>
+                                </div>
+                                <div class="flex justify-between items-center p-3 bg-red-50 dark:bg-red-900/20 rounded-xl">
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-2 h-2 bg-red-500 rounded-full"></div>
+                                        <span class="text-sm font-medium">Hate</span>
+                                    </div>
+                                    <span id="sideHate" class="text-lg font-bold text-red-500">{{ hate }}</span>
+                                </div>
+                                <div class="flex justify-between items-center p-3 bg-green-50 dark:bg-green-900/20 rounded-xl">
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-2 h-2 bg-green-500 rounded-full"></div>
+                                        <span class="text-sm font-medium">Safe</span>
+                                    </div>
+                                    <span id="sideSafe" class="text-lg font-bold text-green-500">{{ safe }}</span>
+                                </div>
+                            </div>
+
+                            <div class="mt-6 space-y-2">
+                                <button class="w-full px-4 py-2 bg-gradient-to-r from-green-500 to-blue-600 text-white rounded-lg text-sm font-medium hover:shadow-lg transition-all duration-300">
+                                    Generate Report
+                                </button>
+                                <button class="w-full px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
+                                    Export Data
+                                </button>
+                            </div>
+                        </div>
+                    </aside>
+                </div>
+            </div>
+        </div>
+
+        {% endwith %}
+        {% endblock %}
+    </div>
+
+    <script>
+    // Force dummy data for JS
+    window.dashboardData = {
+        total: 86,
+        hate: 19,
+        safe: 67,
+        userTotal: 24,
+        chartLabels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+        chartData: [12, 15, 10, 18, 14, 9, 13]
+    };
+
+    document.addEventListener("DOMContentLoaded", () => {
+        console.log("Dashboard script loaded");
+
+        // Check if Chart.js is loaded
+        if (typeof Chart === "undefined") {
+            console.error("Chart.js failed to load. Please check the CDN link.");
+            return;
+        }
+
+        // Store chart instance to destroy/recreate
+        let statsChartInstance = null;
+
+        // ========== CREATE STATS CHART ==========
+        function createStatsChart() {
+            const ctx = document.getElementById("statsChart");
+            if (!ctx) {
+                console.warn("Stats chart canvas not found");
+                return;
+            }
+
+            // Destroy previous chart if exists
+            if (statsChartInstance) {
+                statsChartInstance.destroy();
+            }
+
+            // Use dummy data injected from template
+            const labels = window.dashboardData?.chartLabels || ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+            const data = window.dashboardData?.chartData || [12, 15, 10, 18, 14, 9, 13];
+
+            statsChartInstance = new Chart(ctx, {
+                type: "line",
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: "Weekly Analyses",
+                            data: data,
+                            borderColor: "rgb(59, 130, 246)",
+                            backgroundColor: "rgba(59, 130, 246, 0.1)",
+                            tension: 0.4,
+                            fill: true,
+                        },
+                    ],
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            labels: {
+                                color: document.documentElement.classList.contains("dark") ? "#E5E7EB" : "#374151",
+                            },
+                        },
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: Math.max(...data) * 1.2 || 20,
+                            ticks: {
+                                stepSize: 2,
+                                color: document.documentElement.classList.contains("dark") ? "#9CA3AF" : "#6B7280",
+                            },
+                            grid: {
+                                color: document.documentElement.classList.contains("dark") ? "#374151" : "#E5E7EB",
+                            },
+                        },
+                        x: {
+                            ticks: {
+                                color: document.documentElement.classList.contains("dark") ? "#9CA3AF" : "#6B7280",
+                            },
+                            grid: {
+                                color: document.documentElement.classList.contains("dark") ? "#374151" : "#E5E7EB",
+                            },
+                        },
+                    },
+                },
+            });
+
+            // Force resize after render
+            setTimeout(() => {
+                if (statsChartInstance) statsChartInstance.resize();
+            }, 100);
+        }
+
+        // ========== TAB SWITCHING ==========
+        document.querySelectorAll(".analytics-tab").forEach((tab) => {
+            tab.addEventListener("click", (e) => {
+                e.preventDefault();
+
+                // Remove active class from all tabs
+                document.querySelectorAll(".analytics-tab").forEach((t) => {
+                    t.classList.remove("tab-active");
+                });
+
+                // Add active class to clicked tab
+                tab.classList.add("tab-active");
+
+                // Hide all tab contents
+                document.querySelectorAll(".tab-content").forEach((content) => {
+                    content.classList.add("hidden");
+                    content.classList.remove("animate-slide-in");
+                });
+
+                // Show selected tab
+                const targetTab = tab.getAttribute("data-tab");
+                const targetContent = document.getElementById(`${targetTab}-content`);
+                if (targetContent) {
+                    targetContent.classList.remove("hidden");
+                    targetContent.classList.add("animate-slide-in");
+
+                    // Only create chart when Stats tab is opened
+                    if (targetTab === "stats") {
+                        setTimeout(createStatsChart, 50); // Small delay for visibility
+                    }
+                }
+            });
+        });
+
+        // ========== QUICK ANALYZE FUNCTIONALITY ==========
+        const quickAnalyzeBtn = document.getElementById("quickAnalyzeBtn");
+        const quickSearchInput = document.getElementById("quickSearchInput");
+
+        if (quickAnalyzeBtn && quickSearchInput) {
+            // Click handler
+            quickAnalyzeBtn.addEventListener("click", handleQuickAnalyze);
+
+            // Enter key support
+            quickSearchInput.addEventListener("keypress", (e) => {
+                if (e.key === "Enter") {
+                    e.preventDefault();
+                    handleQuickAnalyze();
+                }
+            });
+        }
+
+        function handleQuickAnalyze() {
+            const text = quickSearchInput.value.trim();
+            if (!text) {
+                alert("Please enter some text to analyze");
+                return;
+            }
+
+            // Simulate loading
+            quickAnalyzeBtn.disabled = true;
+            quickAnalyzeBtn.textContent = "Analyzing...";
+
+            setTimeout(() => {
+                // Random result
+                const isHate = Math.random() > 0.6;
+                const confidence = Math.floor(75 + Math.random() * 25); // 75–100%
+                const label = isHate ? "Hate Speech Detected" : "No Hate Speech";
+
+                // Add to history
+                addToHistory(text, label, confidence);
+
+                // Update input and show result
+                quickSearchInput.value = "";
+                showAnalysisResult(text, label, confidence);
+
+                // Reset button
+                quickAnalyzeBtn.disabled = false;
+                quickAnalyzeBtn.textContent = "Analyze";
+            }, 1000);
+        }
+
+        // ========== ADD TO HISTORY ==========
+        function addToHistory(text, label, confidence) {
+            const lists = ["historyList", "recentList"].map(id => document.getElementById(id)).filter(Boolean);
+            const isHate = label === "Hate Speech Detected";
+
+            lists.forEach(ul => {
+                const li = document.createElement("li");
+                li.className = "text-sm text-gray-700 dark:text-gray-200 cursor-pointer px-3 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors";
+
+                li.setAttribute("data-content", text);
+                li.setAttribute("data-label", label);
+                li.setAttribute("data-confidence", confidence);
+
+                const truncated = text.length > 35 ? text.substring(0, 35) + "..." : text;
+                
+                li.innerHTML = `${escapeHtml(truncated)} 
+                    <span class="text-xs ${isHate ? "text-red-500" : "text-green-500"} ml-2">
+                        ${isHate ? "Hate" : "Safe"}
+                    </span>`;
+
+                li.addEventListener("click", () => showAnalysisResult(text, label, confidence));
+                ul.prepend(li);
+
+                // Keep only last 10 items
+                const items = ul.querySelectorAll("li");
+                if (items.length > 10) items[items.length - 1].remove();
+            });
+
+            // Update counters
+            updateCounters(label);
+        }
+
+        // ========== UPDATE COUNTERS ==========
+        function updateCounters(label) {
+            const updateEl = (id, increment = 1) => {
+                const el = document.getElementById(id);
+                if (el) {
+                    const currentValue = parseInt(el.textContent || 0);
+                    el.textContent = currentValue + increment;
+                }
+            };
+
+            updateEl("sideTotal");
+            updateEl("userAnalyses");
+
+            const bar = document.getElementById("analysesBar");
+            if (bar) {
+                const currentWidth = parseInt(bar.style.width || "0");
+                bar.style.width = `${Math.min(currentWidth + 2, 100)}%`;
+            }
+
+            if (label === "Hate Speech Detected") {
+                updateEl("sideHate");
+            } else {
+                updateEl("sideSafe");
+            }
+
+            // Sync main metric cards
+            const metricCards = document.querySelectorAll('.metric-card .text-2xl');
+            if (metricCards.length >= 3) {
+                const sideTotal = document.getElementById("sideTotal");
+                const sideHate = document.getElementById("sideHate");
+                const sideSafe = document.getElementById("sideSafe");
+                
+                if (sideTotal) metricCards[0].textContent = sideTotal.textContent;
+                if (sideHate) metricCards[1].textContent = sideHate.textContent;
+                if (sideSafe) metricCards[2].textContent = sideSafe.textContent;
+            }
+        }
+
+        // ========== SHOW ANALYSIS RESULT ==========
+        function showAnalysisResult(text, label, confidence) {
+            const centerPanel = document.getElementById("centerPanel");
+            if (!centerPanel) return;
+
+            const isHate = label === "Hate Speech Detected";
+            const colorClass = isHate
+                ? "text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20"
+                : "text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20";
+
+            centerPanel.innerHTML = `
+                <div class="p-8">
+                    <h2 class="text-2xl font-bold text-center mb-6 text-gray-900 dark:text-gray-100">Analysis Result</h2>
+                    
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 max-w-3xl mx-auto">
+                        <div class="mb-6">
+                            <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Input Text</label>
+                            <p class="mt-2 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg text-gray-800 dark:text-gray-200 border">
+                                "${escapeHtml(text)}"
+                            </p>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Result Card -->
+                            <div class="text-center p-6 rounded-xl ${colorClass} dark:shadow-none">
+                                <div class="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center bg-opacity-20 ${isHate ? "bg-red-600" : "bg-green-600"}">
+                                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        ${isHate 
+                                            ? '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"/>'
+                                            : '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>'
+                                        }
+                                    </svg>
+                                </div>
+                                <h3 class="text-xl font-bold">${label}</h3>
+                                <p class="mt-2 text-gray-700 dark:text-gray-300">Confidence: <strong>${confidence}%</strong></p>
+                                <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mt-3">
+                                    <div class="h-2 rounded-full ${isHate ? "bg-red-500" : "bg-green-500"}" style="width: ${confidence}%"></div>
+                                </div>
+                            </div>
+
+                            <!-- Details Card -->
+                            <div class="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-5">
+                                <h3 class="text-lg font-semibold mb-4">Analysis Details</h3>
+                                <div class="space-y-2 text-sm">
+                                    <div class="flex justify-between"><span class="text-gray-600 dark:text-gray-400">Model:</span><span>DeepSentinel v2.1</span></div>
+                                    <div class="flex justify-between"><span class="text-gray-600 dark:text-gray-400">Time:</span><span>${Math.floor(Math.random() * 300 + 80)}ms</span></div>
+                                    <div class="flex justify-between"><span class="text-gray-600 dark:text-gray-400">Length:</span><span>${text.length} chars</span></div>
+                                    <div class="flex justify-between"><span class="text-gray-600 dark:text-gray-400">Language:</span><span>English</span></div>
+                                    <div class="flex justify-between"><span class="text-gray-600 dark:text-gray-400">Time:</span><span>${new Date().toLocaleTimeString()}</span></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="text-center mt-8">
+                            <button id="backToDashboard" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                                ← Back to Dashboard
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById("backToDashboard").addEventListener("click", () => {
+                location.reload();
+            });
+        }
+
+        // ========== CLEAR HISTORY ==========
+        const clearBtn = document.getElementById("clearHistory");
+        if (clearBtn) {
+            clearBtn.addEventListener("click", () => {
+                if (confirm("Clear all history? This cannot be undone.")) {
+                    ["historyList", "recentList"].forEach(id => {
+                        const el = document.getElementById(id);
+                        if (el) {
+                            el.innerHTML = `
+                                <li class="text-center py-8">
+                                    <svg class="w-12 h-12 text-gray-400 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                    </svg>
+                                    <p class="text-sm text-gray-600 dark:text-gray-400 font-medium">No recent analyses</p>
+                                    <p class="text-xs text-gray-500 dark:text-gray-500 mt-1">Start analyzing to see results</p>
+                                </li>`;
+                        }
+                    });
+
+                    // Reset counters
+                    ["sideTotal", "sideHate", "sideSafe", "userAnalyses"].forEach(id => {
+                        const el = document.getElementById(id);
+                        if (el) el.textContent = "0";
+                    });
+
+                    const bar = document.getElementById("analysesBar");
+                    if (bar) bar.style.width = "0%";
+
+                    // Reset metric cards
+                    document.querySelectorAll('.metric-card .text-2xl').forEach((el) => {
+                        el.textContent = "0";
+                    });
+                }
+            });
+        }
+
+        // ========== NEW ANALYSIS BUTTON ==========
+        const newAnalysisBtn = document.getElementById("newAnalysisBtn");
+        if (newAnalysisBtn) {
+            newAnalysisBtn.addEventListener("click", () => {
+                const input = document.getElementById("quickSearchInput");
+                if (input) {
+                    input.focus();
+                    input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            });
+        }
+
+        // ========== CLICK ON HISTORY ITEMS ==========
+        function bindHistoryClicks() {
+            document.querySelectorAll("#historyList li, #recentList li").forEach(li => {
+                // Skip if it's a placeholder item
+                if (li.querySelector('svg')) return;
+                
+                li.addEventListener("click", () => {
+                    const content = li.getAttribute("data-content");
+                    const label = li.getAttribute("data-label");
+                    const confidence = li.getAttribute("data-confidence");
+                    if (content && label && confidence) {
+                        showAnalysisResult(content, label, confidence);
+                    }
+                });
+            });
+        }
+
+        // Call after DOM loads
+        setTimeout(bindHistoryClicks, 100);
+
+        console.log("Dashboard script initialized successfully ✅");
+    });
+
+    // ========== HELPER FUNCTIONS ==========
+    function escapeHtml(text) {
+        const div = document.createElement("div");
+        div.textContent = text;
+        return div.innerHTML;
+    }
+    </script>
+</body>
+</html>
