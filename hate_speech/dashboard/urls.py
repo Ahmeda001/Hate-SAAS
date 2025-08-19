@@ -27,6 +27,7 @@ urlpatterns = [
     path('', views.dashboard , name= 'dashboard'),
     path('detect/', views.detect , name= 'detect'),
     path("feedback/", views.give_feedback, name="give_feedback"),
+    
 
     # path('neww/', views.neww , name= 'neww'),
     # path('new2/', views.new2 , name= 'new2'),

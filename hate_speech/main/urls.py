@@ -27,6 +27,7 @@ urlpatterns = [
     path('', views.home , name= 'home'),
     path('pricing/', views.pricing , name= 'pricing'),
     path('about/', views.about , name= 'about'),
+    
     # path('dark/', views.test_dark_mode , name= 'test_dark_mode'),
     
     

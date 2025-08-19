@@ -15,18 +15,9 @@ Analysis{% endblock %} {% block extra_head %}
 
 
 
-<div class="fixed inset-0 pointer-events-none z-0">
-  <div
-    class="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl animate-pulse"
-  ></div>
-  <div
-    class="absolute bottom-1/4 right-1/4 w-96 h-96 bg-secondary/10 rounded-full blur-3xl animate-pulse"
-    style="animation-delay: 2s"
-  ></div>
-</div>
-<div
-  class="bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-100 min-h-screen"
->
+
+
+<div class="bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-100 min-h-screen bg-gradient-to-br  dark:from-gray-900 dark:to-indigo-900">
   <div class="max-w-7xl mx-auto px-6 py-8">
     <!-- Header -->
     <div class="text-center mb-10">
@@ -39,7 +30,7 @@ Analysis{% endblock %} {% block extra_head %}
       </p>
       <div class="mt-6">
         <a
-          href="#"
+          href="{% url "pricing" %}"
           class="inline-block text-white px-6 py-3 rounded-full font-semibold hover:shadow-lg transition-all transform hover:scale-105 hover:opacity-90  text-lg bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-700 hover:to-indigo-600 dark:from-indigo-500 dark:to-blue-500 dark:hover:from-blue-500 dark:hover:to-blue-400 shadow-lg hover-scale duration-300 "
             >
           Upgrade to Pro
@@ -264,7 +255,7 @@ Analysis{% endblock %} {% block extra_head %}
       </div>
       <div class="text-center">
         <a
-          href="#"
+          href="{% url "pricing" %}"
           class="px-8 py-3 gradient-bg text-white rounded-full font-semibold inline-block text-l hover:shadow-lg transition-all transform hover:scale-105 hover:opacity-90  text-lg bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-700 hover:to-indigo-600 dark:from-indigo-500 dark:to-blue-500 dark:hover:from-blue-500 dark:hover:to-blue-400 shadow-lg hover-scale duration-300 "
         >
           Upgrade Now

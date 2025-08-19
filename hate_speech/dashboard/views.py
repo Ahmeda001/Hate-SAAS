@@ -9,11 +9,11 @@ from .models import ScanHistory
 import datetime
 from django.utils import timezone
 import requests
-
+import hashlib
 from django.utils import timezone
 from django.db.models import Count
 from datetime import timedelta
-
+import random
 # @login_required
 # def dashboard(request):
 #     context = {
@@ -29,6 +29,32 @@ from datetime import timedelta
 @login_required
 def dashboard(request):
 
+
+    avatar_list = [
+        "avatar/2.jpg",
+        "avatar/3.jpg",
+        "avatar/1.jpg",
+        "avatar/4.jpg",
+        "avatar/5.jpg",
+        "avatar/6.jpg",
+        "avatar/7.jpg",
+    ]
+
+    if "user_avatar" in request.session:
+        user_avatar = request.session["user_avatar"]
+    else:
+        # Pick a random one and save in session
+        user_avatar = random.choice(avatar_list)
+        request.session["user_avatar"] = user_avatar
+
+
+
+    hate = ScanHistory.objects.filter(prediction="Hate Speech Detected").count()
+    safe = ScanHistory.objects.filter(prediction="No Hate Speech").count()
+    total = ScanHistory.objects.count()
+    history = ScanHistory.objects.filter(user=request.user).order_by("-created_at")[:3]
+
+
     today = timezone.now().date()
     limit = 15
 
@@ -41,11 +67,22 @@ def dashboard(request):
 
     percentage = int((remaining / limit) * 100) if limit > 0 else 0
 
+    week_ago = today - timedelta(days=7)
+
+    # Filter scans in the last 7 days
+    used_weekly = ScanHistory.objects.filter(
+        user=request.user,
+        created_at__date__gte=week_ago,  # greater than or equal to 7 days ago
+        created_at__date__lte=today       # up to today
+    ).count()
+
+
     credits = {
         "limit": limit,
         "used": used,
         "remaining": remaining,
         "percentage": percentage,
+        "weekly_used": used_weekly,
     }
 
 
@@ -88,6 +125,37 @@ def dashboard(request):
         "chart_hate": hate_counts,
         "chart_safe": safe_counts,
     }
+
+
+    threshold_high = 0.8
+    threshold_low = 0.5
+    # get scans for the logged-in user above threshold
+    risk_scans = ScanHistory.objects.filter(user=request.user, probability__gte=threshold_high)
+    safe_scans = ScanHistory.objects.filter(user=request.user, probability__lt=threshold_high, probability__gte=threshold_low)
+    
+    risk_per = risk_scans.count() / total * 100 if total > 0 else 0
+    safe_per = safe_scans.count() / total * 100 if total > 0 else 0
+
+    today_risk = ScanHistory.objects.filter(user=request.user, probability__gte=threshold_high, created_at__date__gte=today)
+    today_safe = ScanHistory.objects.filter(user=request.user, probability__lt=threshold_high, probability__gte=threshold_low, created_at__date__gte=today)
+
+    today_risk_per = today_risk.count() / total * 100 if total > 0 else 0
+    today_safe_per = today_safe.count() / total * 100 if total > 0 else 0
+        
+
+    analytics ={
+        "today": today,
+    }
+
+
+    scan_threshold ={
+        "risk_per":round(risk_per, 1), 
+        "safe_per":round(safe_per, 1), 
+        "today_risk_per":round(today_risk_per, 1),
+        "today_safe_per":round(today_safe_per, 1),
+    }
+
+
 
 
 
@@ -133,11 +201,7 @@ def dashboard(request):
     }
 
 
-    hate = ScanHistory.objects.filter(prediction="Hate Speech Detected").count()
-    safe = ScanHistory.objects.filter(prediction="No Hate Speech").count()
-    total = ScanHistory.objects.count()
-    history = ScanHistory.objects.filter(user=request.user).order_by("-created_at")[:3]
-
+    
 
 
 
@@ -153,7 +217,7 @@ def dashboard(request):
 
     
 
-    return render(request, 'dashboard.html',{**context, "history": history, "hate": hate, "safe": safe, "total": total,"user_type": user_type,"credits": credits,"chart": chart,"accuracy": accuracy,"percentage": percentage})
+    return render(request, 'dashboard.html',{**context,"user_avatar":user_avatar,"scan_threshold":scan_threshold ,"history": history, "hate": hate, "safe": safe, "total": total,"user_type": user_type,"credits": credits,"chart": chart,"accuracy": accuracy,"percentage": percentage})
 
 
 def api_call_text(text):

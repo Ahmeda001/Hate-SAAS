@@ -27,9 +27,12 @@
   <section class="py-16 px-6 bg-white dark:bg-gray-900">
     <div class="max-w-6xl mx-auto">
       <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+
+
+        {% if user_type == "non"  %}
         <!-- Free Plan -->
         <div
-          class="p-6 bg-gray-50 dark:bg-gray-800 rounded-2xl shadow-md border border-gray-200 dark:border-gray-700 transform transition-transform hover:scale-105 animate-fadeInUp animation-delay-300">
+          class="p-6 bg-gray-50  dark:bg-gray-800 rounded-2xl shadow-md border border-gray-200 dark:border-gray-700 transform transition-transform hover:scale-105 animate-fadeInUp animation-delay-300">
           <h3
             class="text-2xl font-semibold text-blue-600 dark:text-blue-400 mb-4"
           >
@@ -93,7 +96,136 @@
                   d="M5 13l4 4L19 7"
                 ></path>
               </svg>
+              Analytics dashboard
+            </li>
+
+            <li class="flex items-center">
+              <svg
+                class="w-5 h-5 text-blue-600 dark:text-blue-400 mr-2"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M5 13l4 4L19 7"
+                ></path>
+              </svg>
               Community support
+            </li>
+          </ul>
+          <a
+            href="{% url 'signup' %}"
+            class="block px-6 py-3 text-center text-lg font-semibold text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900 rounded-full hover:bg-blue-200 dark:hover:bg-blue-800 transition-all duration-300"
+            >Get Started</a
+          >
+        </div>
+
+        {% elif user_type == "free" %}
+        <!-- Standard Plan (was Free) -->
+        <div
+          class="p-6 bg-gray-50 dark:bg-gray-800 rounded-2xl shadow-md border border-gray-200 dark:border-gray-700 transform transition-transform hover:scale-105 animate-fadeInUp animation-delay-300">
+          <h3
+            class="text-2xl font-semibold text-blue-600 dark:text-blue-400 mb-4"
+          >
+            Standard
+          </h3>
+          <p class="text-4xl font-bold text-gray-800 dark:text-gray-100 mb-4">
+            $9.99<span class="text-lg font-normal text-gray-600 dark:text-gray-300"
+              >/mo</span
+            >
+          </p>
+          <p class="text-gray-600 dark:text-gray-300 mb-6">
+            Unlock the full potential for your community.
+          </p>
+          <ul class="space-y-3 text-gray-600 dark:text-gray-300 mb-8">
+            <li class="flex items-center">
+              <svg
+                class="w-5 h-5 text-blue-600 dark:text-blue-400 mr-2"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M5 13l4 4L19 7"
+                ></path>
+              </svg>
+              Advanced AI – Smarter detection
+            </li>
+            <li class="flex items-center">
+              <svg
+                class="w-5 h-5 text-blue-600 dark:text-blue-400 mr-2"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M5 13l4 4L19 7"
+                ></path>
+              </svg>
+              Multimodal – Works with text & images
+            </li>
+            <li class="flex items-center">
+              <svg
+                class="w-5 h-5 text-blue-600 dark:text-blue-400 mr-2"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M5 13l4 4L19 7"
+                ></path>
+              </svg>
+              Multilingual – Understands Multiple languages
+            </li>
+            <li class="flex items-center">
+              <svg
+                class="w-5 h-5 text-blue-600 dark:text-blue-400 mr-2"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M5 13l4 4L19 7"
+                ></path>
+              </svg>
+              Bulk CSV Upload – Detect text in bulk
+            </li>
+            <li class="flex items-center">
+              <svg
+                class="w-5 h-5 text-blue-600 dark:text-blue-400 mr-2"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M5 13l4 4L19 7"
+                ></path>
+              </svg>
+              Full Search History – Track all past scans
             </li>
           </ul>
           <a
@@ -103,18 +235,17 @@
           >
         </div>
 
+        {% endif %}
+
         <!-- Pro Plan -->
-        <div
-          class="
-          p-8 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900 dark:to-indigo-900 rounded-2xl shadow-lg border border-blue-300 dark:border-blue-700 transform transition-transform hover:scale-105 animate-fadeInUp animation-delay-200"
-        >
+        <div class="p-8 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900 dark:to-indigo-900 rounded-2xl shadow-lg border border-blue-300 dark:border-blue-700 transform transition-transform hover:scale-105 animate-fadeInUp animation-delay-200">
           <h3
             class="text-2xl font-semibold text-blue-600 dark:text-blue-400 mb-4"
           >
             Pro
           </h3>
           <p class="text-4xl font-bold text-gray-800 dark:text-gray-100 mb-4">
-            $29<span
+            $29.99<span
               class="text-lg font-normal text-gray-600 dark:text-gray-300"
               >/mo</span
             >
@@ -138,7 +269,7 @@
                   d="M5 13l4 4L19 7"
                 ></path>
               </svg>
-              Advanced AI models
+              Unlimited Searches – Text, images & multimodal models
             </li>
             <li class="flex items-center">
               <svg
@@ -155,7 +286,7 @@
                   d="M5 13l4 4L19 7"
                 ></path>
               </svg>
-              Unlimited scans
+              SOTA AI Models – Real-time, high-accuracy detection
             </li>
             <li class="flex items-center">
               <svg
@@ -172,8 +303,33 @@
                   d="M5 13l4 4L19 7"
                 ></path>
               </svg>
-              Priority support
+              Multilingual + Cross-Lingual – Understand content in any language
             </li>
+
+
+            
+
+
+            <li class="flex items-center">
+              <svg
+                class="w-5 h-5 text-blue-600 dark:text-blue-400 mr-2"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M5 13l4 4L19 7"
+                ></path>
+              </svg>
+              API Access – Integrate with your apps seamlessly
+            </li>
+
+
+            
           </ul>
           <a
             href="#"
@@ -183,9 +339,7 @@
         </div>
 
         <!-- Enterprise Plan -->
-        <div
-          class="p-8 bg-gray-50 dark:bg-gray-800 rounded-2xl shadow-md border border-gray-200 dark:border-gray-700 transform transition-transform hover:scale-105 animate-fadeInUp animation-delay-400"
-        >
+        <div class="p-8 bg-gray-50 dark:bg-gray-800 rounded-2xl shadow-md border border-gray-200 dark:border-gray-700 transform transition-transform hover:scale-105 animate-fadeInUp animation-delay-400">
           <h3
             class="text-2xl font-semibold text-blue-600 dark:text-blue-400 mb-4"
           >
@@ -213,7 +367,7 @@
                   d="M5 13l4 4L19 7"
                 ></path>
               </svg>
-              Custom AI models
+              Custom AI models – Tailored to your organization’s needs
             </li>
             <li class="flex items-center">
               <svg
@@ -230,7 +384,7 @@
                   d="M5 13l4 4L19 7"
                 ></path>
               </svg>
-              Dedicated support
+              Dedicated support – Priority assistance for your team
             </li>
             <li class="flex items-center">
               <svg
@@ -247,7 +401,24 @@
                   d="M5 13l4 4L19 7"
                 ></path>
               </svg>
-              API access
+              Full API access – Seamlessly integrate with your apps
+            </li>
+            <li class="flex items-center">
+              <svg
+                class="w-5 h-5 text-blue-600 dark:text-blue-400 mr-2"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M5 13l4 4L19 7"
+                ></path>
+              </svg>
+              SLA & uptime guarantees – Reliable, enterprise-grade performance
             </li>
           </ul>
           <a
@@ -256,9 +427,14 @@
             >Contact Us</a
           >
         </div>
+
+
       </div>
     </div>
-  </section>
+  </section> 
+
+
+
 </div>
 
 
