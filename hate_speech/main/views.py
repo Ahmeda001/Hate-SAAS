@@ -6,7 +6,25 @@ from django.urls import reverse
 
 
 def home(request):    
-    return render(request, 'home.html')
+
+    avatar_list = [
+        "avatar/2.jpg",
+        "avatar/3.jpg",
+        "avatar/1.jpg",
+        "avatar/4.jpg",
+        "avatar/5.jpg",
+        "avatar/6.jpg",
+        "avatar/7.jpg",
+    ]
+
+    if "user_avatar" in request.session:
+        user_avatar = request.session["user_avatar"]
+    else:
+        # Pick a random one and save in session
+        user_avatar = random.choice(avatar_list)
+        request.session["user_avatar"] = user_avatar
+
+    return render(request, 'home.html',{"user_avatar": user_avatar})
 
 
 

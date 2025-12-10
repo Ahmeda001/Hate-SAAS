@@ -13,6 +13,7 @@ import hashlib
 from django.utils import timezone
 from django.db.models import Count
 from datetime import timedelta
+from django.db.models import Count, Q
 
 
 import random
@@ -31,6 +32,7 @@ import random
 @login_required
 def dashboard(request):
 
+    user_type = 'free'  # Replace this with your real user type logic
 
     avatar_list = [
         "avatar/2.jpg",
@@ -49,21 +51,44 @@ def dashboard(request):
         user_avatar = random.choice(avatar_list)
         request.session["user_avatar"] = user_avatar
 
+    # stats = ScanHistory.objects.aggregate(
+    #     hate=Count("id", filter=Q(prediction="Hate Speech Detected")),
+    #     safe=Count("id", filter=Q(prediction="No Hate Speech")),
+    #     total=Count("id")
+    # )
 
+    # hate = stats["hate"]
+    # safe = stats["safe"]
+    # total = stats["total"]
 
-    hate = ScanHistory.objects.filter(prediction="Hate Speech Detected").count()
-    safe = ScanHistory.objects.filter(prediction="No Hate Speech").count()
-    total = ScanHistory.objects.count()
     history = ScanHistory.objects.filter(user=request.user).order_by("-created_at")[:3]
 
-
-    today = timezone.now().date()
     limit = 15
+    threshold_high = 0.8
+    threshold_low = 0.5
+    today = timezone.now().date()
 
-    used = ScanHistory.objects.filter(
-        user=request.user,
-        created_at__date=today  # counts only today’s scans
-    ).count()
+    start_date = today - timedelta(days=6)  # last 7 days
+
+    user_stats = ScanHistory.objects.filter(user=request.user).aggregate(
+        total_scans=Count("id"),
+        used_today=Count("id", filter=Q(created_at__date=today)),
+        risk=Count("id", filter=Q(probability__gte=threshold_high)),
+        safe_prob=Count("id", filter=Q(probability__lt=threshold_high, probability__gte=threshold_low)),
+        today_risk=Count("id", filter=Q(probability__gte=threshold_high, created_at__date=today)), 
+        today_safe=Count("id", filter=Q(probability__lt=threshold_high, probability__gte=threshold_low, created_at__date=today)),
+        feedbacks_total=Count("id", filter=Q(feedback__isnull=False)),
+        feedbacks_true=Count("id", filter=Q(feedback=True)),
+    )
+    total= user_stats['total_scans']
+    used = user_stats["used_today"]
+    risk_scans = user_stats["risk"]
+    safe_scans = user_stats["safe_prob"]
+    today_risk = user_stats["today_risk"]
+    today_safe = user_stats["today_safe"]
+
+    feedbacks_total = user_stats["feedbacks_total"]
+    feedbacks_true = user_stats["feedbacks_true"]
 
     remaining = max(limit - used, 0)
 
@@ -78,19 +103,6 @@ def dashboard(request):
         created_at__date__lte=today       # up to today
     ).count()
 
-
-    credits = {
-        "limit": limit,
-        "used": used,
-        "remaining": remaining,
-        "percentage": percentage,
-        "weekly_used": used_weekly,
-    }
-
-
-    today = timezone.now().date()
-    start_date = today - timedelta(days=6)  # last 7 days
-    
     # get all scans for the last 7 days
     scans = (
         ScanHistory.objects.filter(user=request.user, created_at__date__gte=start_date)
@@ -122,55 +134,17 @@ def dashboard(request):
         hate_counts.append(scan_dict.get(day_str, {}).get("hate", 0))
         safe_counts.append(scan_dict.get(day_str, {}).get("safe", 0))
     
-    chart = {
-        "chart_labels": labels,
-        "chart_hate": hate_counts,
-        "chart_safe": safe_counts,
-    }
-
-
-    threshold_high = 0.8
-    threshold_low = 0.5
-    # get scans for the logged-in user above threshold
-    risk_scans = ScanHistory.objects.filter(user=request.user, probability__gte=threshold_high)
-    safe_scans = ScanHistory.objects.filter(user=request.user, probability__lt=threshold_high, probability__gte=threshold_low)
-    
-    risk_per = risk_scans.count() / total * 100 if total > 0 else 0
-    safe_per = safe_scans.count() / total * 100 if total > 0 else 0
-
-    today_risk = ScanHistory.objects.filter(user=request.user, probability__gte=threshold_high, created_at__date__gte=today)
-    today_safe = ScanHistory.objects.filter(user=request.user, probability__lt=threshold_high, probability__gte=threshold_low, created_at__date__gte=today)
-
-    today_risk_per = today_risk.count() / total * 100 if total > 0 else 0
-    today_safe_per = today_safe.count() / total * 100 if total > 0 else 0
+    risk_per = risk_scans / total * 100 if total > 0 else 0
+    safe_per = safe_scans / total * 100 if total > 0 else 0
+    today_risk_per = today_risk / total * 100 if total > 0 else 0
+    today_safe_per = today_safe / total * 100 if total > 0 else 0
         
-
-    analytics ={
-        "today": today,
-    }
-
-
-    scan_threshold ={
-        "risk_per":round(risk_per, 1), 
-        "safe_per":round(safe_per, 1), 
-        "today_risk_per":round(today_risk_per, 1),
-        "today_safe_per":round(today_safe_per, 1),
-    }
-
-
-
-
-
-    # All feedbacks that have been given
-    feedbacks = ScanHistory.objects.filter(user=request.user).exclude(feedback__isnull=True)
-
-    if feedbacks.exists(): 
-        overall_accuracy = (feedbacks.filter(feedback=True).count() / feedbacks.count()) * 100
+    
+    if feedbacks_total: 
+        overall_accuracy = (feedbacks_true / feedbacks_total) * 100
     else:
         overall_accuracy = 0  # No feedback yet
        
-
-    today = timezone.now().date()
     todays_feedbacks = ScanHistory.objects.filter(
         user=request.user,
         created_at__date=today
@@ -181,13 +155,26 @@ def dashboard(request):
     else:
         todays_accuracy = 0
 
+    credits = {
+        "limit": limit,
+        "used": used,
+        "remaining": remaining,
+        "percentage": percentage,
+        "weekly_used": used_weekly,
+    }
 
+    chart = {
+        "chart_labels": labels,
+        "chart_hate": hate_counts,
+        "chart_safe": safe_counts,
+    }
 
-    
-
-     
-
-    user_type = 'free'  # Replace this with your real user type logic
+    scan_threshold ={
+        "risk_per":round(risk_per, 1), 
+        "safe_per":round(safe_per, 1), 
+        "today_risk_per":round(today_risk_per, 1),
+        "today_safe_per":round(today_safe_per, 1),
+    }
     
     context = {
         'metrics': {
@@ -202,24 +189,13 @@ def dashboard(request):
         ]
     }
 
-
-    
-
-
-
-
-    
-
-
     accuracy = {
         "overall_accuracy": round(overall_accuracy, 1),
         "todays_accuracy": round(todays_accuracy, 1),
     }
 
+    return render(request, 'dashboard.html',{**context,"user_avatar":user_avatar,"scan_threshold":scan_threshold ,"history": history, "hate": risk_scans, "safe": safe_scans ,"total": total,"user_type": user_type,"credits": credits,"chart": chart,"accuracy": accuracy,"percentage": percentage})
 
-    
-
-    return render(request, 'dashboard.html',{**context,"user_avatar":user_avatar,"scan_threshold":scan_threshold ,"history": history, "hate": hate, "safe": safe, "total": total,"user_type": user_type,"credits": credits,"chart": chart,"accuracy": accuracy,"percentage": percentage})
 
 
 def api_call_text(text):
@@ -231,6 +207,25 @@ def api_call_text(text):
 
 
 def detect(request):
+
+    avatar_list = [
+        "avatar/2.jpg",
+        "avatar/3.jpg",
+        "avatar/1.jpg",
+        "avatar/4.jpg",
+        "avatar/5.jpg",
+        "avatar/6.jpg",
+        "avatar/7.jpg",
+    ]
+
+    if "user_avatar" in request.session:
+        user_avatar = request.session["user_avatar"]
+    else:
+        # Pick a random one and save in session
+        user_avatar = random.choice(avatar_list)
+        request.session["user_avatar"] = user_avatar
+
+
     result = None
     message = None
 
@@ -266,7 +261,7 @@ def detect(request):
 
     else:
         # Logged-in users: no free limit
-        if request.method == "POST":
+        if request.method == "POST":            
             text = request.POST.get("text")
             result = api_call_text(text)
             result['probability_percent'] = result['probability'] * 100
@@ -285,7 +280,7 @@ def detect(request):
 
             result['scan_id'] = scan.id
 
-    return render(request, 'free.html', {"result": result, "message": message})
+    return render(request, 'free.html', {"result": result, "message": message,"user_avatar": user_avatar})
 
 
 
